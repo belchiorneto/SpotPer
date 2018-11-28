@@ -1,0 +1,16 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}UFC - Universidade Federal do Ceará
+${licensePrefix}FDB - Fundamentos de Bancos de Dados
+${licensePrefix}Professor: ANGELO RONCALLI ALENCAR BRAYNER
+${licensePrefix}Equipe:
+${licensePrefix} Everson Magalhaes Cavalcante
+${licensePrefix} Belchior Dameao de Araújo Neto
+${licensePrefix} Este script faz parte do projeto BDSpotPer
+${licensePrefix} trabalho prático necessário como parte da nota 
+${licensePrefix} para a cadeira de Fundamentos de Bancos de Dados 2018.2
+
+<#if licenseLast??>
+${licenseLast}
+</#if>
