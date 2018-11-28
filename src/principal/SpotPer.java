@@ -1,9 +1,16 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * UFC - Universidade Federal do Ceará
+ * FDB - Fundamentos de Bancos de Dados
+ * Professor: ANGELO RONCALLI ALENCAR BRAYNER
+ * Equipe:
+ *  Everson Magalhaes Cavalcante
+ *  Belchior Dameao de Araújo Neto
+ *  Este script faz parte do projeto BDSpotPer
+ *  trabalho prático necessário como parte da nota 
+ *  para a cadeira de Fundamentos de Bancos de Dados 2018.2
+
  */
-package spotper;
+package principal;
 
 import components.Albun;
 import components.Faixa;

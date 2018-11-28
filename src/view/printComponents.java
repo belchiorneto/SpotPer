@@ -135,18 +135,9 @@ public class printComponents {
             */
             JButton playButton = new JButton();
             playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/play.png")));
-            String path = "file:///C:/FBD/" + faixa.getFaixaId() + ".mp3";
+            String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
             playButton.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent event){
-                    String urlfile = "https://www.mfiles.co.uk/mp3-downloads/bach-bourree-in-e-minor-piano.mp3";
-                    /*
-                    try {
-                        new tools.FileManager().download(urlfile, "C:/FBD/teste.mp3");
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    */
-                    
                     if(playfile.getClip() != null){
                         if(playfile.getClip().getStatus() == MediaPlayer.Status.PLAYING){
                             playfile.stop();

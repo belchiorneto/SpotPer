@@ -88,7 +88,7 @@ public class printWebComponents {
             playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/play.png")));
             // test to see if a file exists
             
-            String path = "file:///C:/FBD/" + faixa.getFaixaId() + ".mp3";
+            String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
             playButton.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent event){
                     if(playfile.getClip() != null){
@@ -112,7 +112,7 @@ public class printWebComponents {
                 public void mouseClicked(MouseEvent event){
                     String urlfile = "https://www.mfiles.co.uk/"+ faixa.getUrlDownload();
                     try {
-                        new tools.FileManager().download(urlfile, "C:/FBD/" + faixa.getFaixaId() + ".mp3");
+                        new tools.FileManager().download(urlfile, "C:/FBD/" + faixa.getDescr() + ".mp3");
                         downloadButton.setVisible(false);
                         playButton.setVisible(true);
                     } catch (IOException e) {
@@ -122,7 +122,7 @@ public class printWebComponents {
                 }
             });
             
-            File file = new File("C:/FBD/" + faixa.getFaixaId() + ".mp3");
+            File file = new File("C:/FBD/" + faixa.getDescr() + ".mp3");
             if(!file.exists()){
                 playButton.setVisible(false);
                 downloadButton.setVisible(true);
