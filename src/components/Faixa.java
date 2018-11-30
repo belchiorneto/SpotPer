@@ -57,6 +57,32 @@ public class Faixa {
         }
     return faixas;
     }
+    public HashMap<String, Faixa> listaMaisTocadas(){
+        HashMap<String, Faixa> faixas = new HashMap<>();
+        String SQL = "";
+        SQL += "SELECT " 
+                + "f.faixa_id, "
+                + "f.descr, "
+                + "f.duracao "
+                + "FROM "
+                + "faixas f "
+                + "WHERE plays > 0 "
+                + "ORDER BY plays desc";
+                
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            while (rs.next()) { 
+                Faixa faixa = new Faixa();
+                faixa.setFaixaId(Integer.parseInt(rs.getString("faixa_id")));
+                faixa.setDuracao(rs.getString("duracao"));
+                faixa.setDescr(rs.getString("descr"));
+                faixas.put(String.valueOf(faixa.getFaixaId()), faixa);
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    return faixas;
+    }
     public void setNewFaixaId(){
         int id = 0; 
         String SQL = "";
@@ -86,6 +112,16 @@ public class Faixa {
         String tabela = "faixas";
         DbUtils.Insert(campos, dados, tabela);
     }
+    public void countPlay(){
+        String SQL = "";
+        SQL += "UPDATE faixas " 
+                + "SET "
+                + "plays = plays + 1 "
+                + "WHERE "
+                + "faixa_id = " + getFaixaId();
+        DbUtils.update(SQL);
+    }
+            
     public void setFaixaId(int faixaId){
         faixa_id = faixaId;
     }

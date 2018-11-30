@@ -219,10 +219,12 @@ public class printComponents {
                         }else{
                             playfile.setClip(path);
                             playfile.play();
+                            faixa.countPlay();
                         }
                     }else{
                         playfile.setClip(path);
                         playfile.play();
+                        faixa.countPlay();
                     }
                     
                 }
@@ -241,16 +243,21 @@ public class printComponents {
         }
     }
     public void showFormPlayList(){
+        pnlListaFaixas.removeAll();
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(5, 5, 5, 5);
         framePlayList.setSize(500, 700); 
         Popup popUpPlaylist; 
         PopupFactory pf = new PopupFactory(); 
         
         pnlListaFaixas.setBackground(Color.WHITE); 
+        int count = 1;
         for(Faixa faixa: playlist.getFaixas().values()){
+            constraints.gridy = count;
             JLabel titulo = new JLabel(faixa.getDescr()); 
-            pnlListaFaixas.add(titulo); 
+            pnlListaFaixas.add(titulo, constraints); 
+            count++;
         }
         
         popUpPlaylist = pf.getPopup(framePlayList, pnlListaFaixas, 180, 100); 

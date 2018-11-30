@@ -106,10 +106,12 @@ public class printWebComponents {
                         }else{
                             playfile.setClip(path);
                             playfile.play();
+                            faixa.countPlay();
                         }
                     }else{
                         playfile.setClip(path);
                         playfile.play();
+                        faixa.countPlay();
                     }
                     
                 }

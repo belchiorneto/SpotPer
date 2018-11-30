@@ -145,6 +145,8 @@ public class SpotPer extends JFrame {
         }else{
             // mostra lista de albuns
             componentes.printAlbuns(PainelCentral, new Albun().listaAlbuns());
+            // mostra lista de mais tocadas
+            componentes.printFaixas(PainelMaisTocadas, new Faixa().listaMaisTocadas());
         }
         
         ButtonAlbuns.addMouseListener(new MouseAdapter(){

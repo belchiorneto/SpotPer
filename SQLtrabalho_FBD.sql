@@ -133,6 +133,7 @@ CREATE TABLE faixas
 		tipo_gravacao_id TINYINT NOT NULL,
 		albun_id TINYINT NOT NULL,
 		tipo_composicao_id TINYINT NOT NULL,
+		plays TINYINT DEFAULT 0,
 		
 		CONSTRAINT pk_faixa_id
 		PRIMARY KEY (faixa_id),
@@ -624,8 +625,9 @@ GO
  Estratégia: Criação de um trigger na tabela faixas pra contar a quantidade de faixas que já existem 
  para o id do albun que está sendo inserido
  */
+
 CREATE TRIGGER albumLimite_trigger
-ON faixas
+ON dbo.faixas
 FOR INSERT,UPDATE
 AS
 BEGIN
@@ -640,9 +642,11 @@ BEGIN
 	WHERE albun_id = @ALBUN_ID
 	set @str_invalido='Quantidade de faixas: '+cast(@QTDE_FAIXAS as varchar(2))+
       ' inválida'
-	IF (@QTDE_FAIXAS > 63)
+	IF @QTDE_FAIXAS > 63
+	BEGIN
 		raiserror(@str_invalido,16,1)
 		ROLLBACK TRANSACTION
+	END
 END
 GO
 
@@ -718,7 +722,3 @@ AS
 	GROUP BY p.nome
 
 --select * from V_album
-drop trigger TGR_REMOVE_FAIXAS_ALBUN
-SELECT * FROM albuns
-select * from faixas
-delete from albuns where albun_id = 1
