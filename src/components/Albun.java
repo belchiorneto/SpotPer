@@ -25,14 +25,100 @@ import java.util.logging.Logger;
  * @author Belchior
  */
 public class Albun {
-    int albun_id;
-    float pr_compra;
-    String dt_compra, dt_gravacao, tipo_compra, descr;
-    int tipo_compra_id, gravadora_id;
-    public HashMap<String, Cd> cds = new HashMap<>();
+    private int albun_id;
+    private float pr_compra;
+    private String dt_compra, dt_gravacao, tipo_compra, descr;
+    private int tipo_compra_id, gravadora_id;
+    private HashMap<String, Faixa> faixas = new HashMap<>();
     
     public Albun(){
         
+    }
+    public void setNewId(){
+        int id = 1; 
+        String SQL = "";
+        SQL += "SELECT " 
+                + "MAX(albun_id) as albun_id "
+                + "FROM "
+                + "albuns";
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            if(rs.next()) {
+                id = Integer.parseInt(rs.getString("albun_id")) + 1;
+                System.out.println(id);
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        albun_id = id;
+    }
+    public void addToDb(){
+        String campos = "albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_compra_id, gravadora_id";
+        String dados = getAlbunid() + "," 
+                + getPrCompra() + ","
+                + getDtCompra() + ","
+                + getDtGravacao() + ","
+                + "'" + getDescr() + "',"
+                + getTipoCompraId() + ","
+                + getGravadoraId();
+        String tabela = "albuns";
+        DbUtils.Insert(campos, dados, tabela);
+    }
+    public boolean exist(){
+        String SQL = "";
+        SQL += "SELECT " 
+                + "albun_id "
+                + "FROM "
+                + "albuns "
+                + "WHERE "
+                + "albun_id = " + getAlbunid();
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            if(rs.next()) {
+                return true;
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public HashMap<String, Albun> listaAlbuns(){
+        HashMap<String, Albun> albuns = new HashMap<>();
+        
+        String SQL = "";
+        SQL += "SELECT " 
+                + "a.albun_id, "
+                + "a.dt_compra, "
+                + "a.descr, "
+                + "a.dt_gravacao, "
+                + "t.descr as tipo_compra, "
+                + "g.nome, "
+                + "g.endereco, "
+                + "g.website "
+                + "FROM "
+                + "albuns a, "
+                + "tipos_compra t, "
+                + "gravadoras g "
+                + "WHERE "
+                + "a.tipo_compra_id = t.tipo_id AND "
+                + "a.gravadora_id = g.gravadora_id;";
+                
+                
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            while (rs.next()) { 
+                Albun albun = new Albun();
+                albun.albun_id = Integer.parseInt(rs.getString("albun_id"));
+                albun.descr = rs.getString("descr");
+                albun.dt_compra = rs.getString("dt_compra");
+                albun.dt_gravacao = rs.getString("dt_gravacao");
+                albun.tipo_compra = rs.getString("tipo_compra");
+                albuns.put(String.valueOf(albun.albun_id), albun);
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return albuns;
     }
     public void setDescr(String descricao){
         descr = descricao;
@@ -67,8 +153,8 @@ public class Albun {
     public void setTipo_compra_id(int novoTipo_compra_id){
         tipo_compra_id = novoTipo_compra_id;
     }
-    public String getTipoCompra(){
-        return tipo_compra;
+    public int getTipoCompraId(){
+        return tipo_compra_id;
     }
     public void setGravadora_id(int novaGravadora_id){
         gravadora_id = novaGravadora_id;
@@ -76,57 +162,11 @@ public class Albun {
     public int getGravadoraId(){
         return gravadora_id;
     }
-    public void setCds(HashMap<String, Cd> newCds){
-        cds = newCds;
+    public void setFaixas(HashMap<String, Faixa> newFaixas){
+        faixas = newFaixas;
     }
-    public HashMap<String, Cd> getCds(){
-        return cds;
+    public HashMap<String, Faixa> getFaixas(){
+        return faixas;
     }
-    public HashMap<String, Albun> listaAlbuns(){
-        HashMap<String, Albun> albuns = new HashMap<>();
-        
-        String SQL = "";
-        SQL += "SELECT " 
-                + "a.albun_id, "
-                + "a.dt_compra, "
-                + "a.descr, "
-                + "a.dt_gravacao, "
-                + "t.descr as tipo_compra, "
-                + "g.nome, "
-                + "g.endereco, "
-                + "g.website "
-                + "FROM "
-                + "albuns a, "
-                + "tipos_compra t, "
-                + "gravadoras g "
-                + "WHERE "
-                + "a.tipo_compra_id = t.tipo_id AND "
-                + "a.gravadora_id = g.gravadora_id;";
-                
-                
-        ResultSet rs = DbUtils.Lista(SQL);
-        try{
-            while (rs.next()) { 
-                Albun albun = new Albun();
-                albun.albun_id = Integer.parseInt(rs.getString("albun_id"));
-                albun.descr = rs.getString("descr");
-                albun.dt_compra = rs.getString("dt_compra");
-                albun.dt_gravacao = rs.getString("dt_gravacao");
-                albun.tipo_compra = rs.getString("tipo_compra");
-                //albun.setCds(new Cd().listaCds(Integer.parseInt(rs.getString("albun_id"))));
-                albuns.put(String.valueOf(albun.albun_id), albun);
-            }
-        }catch(SQLException e){
-            e.printStackTrace();
-        }finally {
-            if (rs != null) { 
-                try {
-                    rs.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(Cd.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        return albuns;
-    }
+    
 }

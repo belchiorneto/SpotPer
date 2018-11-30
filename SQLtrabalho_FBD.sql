@@ -10,7 +10,6 @@ Projetar banco de dados para um aplicativo de gerenciamento de músicas semelhant
 Este documento faz parte do projeto e contém as informações e scripts necessários para criação do banco de dados
 em ambiente "SQL Server" ou "PostgreSQL"
 ================================================================================================*/
-
 CREATE DATABASE	BDSpotPer
 ON
 	PRIMARY
@@ -116,32 +115,13 @@ ALTER TABLE albuns
 	FOREIGN KEY  (tipo_compra_id) REFERENCES tipos_compra(tipo_id);
 
 /*
-Tabela "cds", conterá informações dos cds armazenados no banco de dados
-campos:
-- cd_id (identificador único de cada cd)
-- albun_id (armazena o identificador do albun presente na tabela "albuns")
-*/
-
-CREATE TABLE cds
-	(
-		cd_id TINYINT NOT NULL,
-		albun_id TINYINT NOT NULL,
-		CONSTRAINT pk_cd_id 
-		PRIMARY KEY (cd_id),
-		
-		CONSTRAINT fk_albun_id 
-		FOREIGN KEY (albun_id)
-		REFERENCES albuns(albun_id)
-	) ON BDSpotPer_fg01
-
-/*
 Tabela "faixas", conterá as informações referentes a cada faixa de música
 campos:
 - faixa_id (identificador único de cada faixa)
 - duracao (a duração no formato DATETIME de cada faixa)
 - descr(uma descrição da faixa)
 - tipo_gravacao_id (o identificados do tipo de gravação presente na tabela "tipos_gravacao")
-- cd_id (o identificador do cd a qual esta faixa pertence, armazenado na tabela "cds")
+- albun_id (o identificador do albun a qual esta faixa pertence, armazenado na tabela "albuns")
 */
 
 CREATE TABLE faixas
@@ -150,12 +130,12 @@ CREATE TABLE faixas
 		duracao DATETIME,
 		descr VARCHAR(255),
 		tipo_gravacao_id TINYINT NOT NULL,
-		cd_id TINYINT NOT NULL,
+		albun_id TINYINT NOT NULL,
 		
 		CONSTRAINT pk_faixa_id
 		PRIMARY KEY (faixa_id),
 		CONSTRAINT fk_cd_id
-		FOREIGN KEY( cd_id ) REFERENCES cds ( cd_id )
+		FOREIGN KEY( albun_id ) REFERENCES albuns ( albun_id )
 		-- adcicionaremos a fk tipo_gravacao_id depois de criada a tabela "tipos_gravacoes"
 	) ON BDSpotPer_fg02
 
@@ -215,6 +195,8 @@ CREATE TABLE playlists
 		playlist_id TINYINT NOT NULL,
 		nome VARCHAR(20),
 		dt_criacao DATETIME,
+		numero_tocadas TINYINT,
+		tempo_total DATETIME,
 		CONSTRAINT pk_playlist_id
 		PRIMARY KEY (playlist_id),
 	) ON BDSpotPer_fg02
@@ -332,21 +314,16 @@ CREATE TABLE tipos_composicoes
 Tabela "composicoes", armazenará as informações de cada composição
 campos:
 - composicao_id (identificador único da composição)
-- compositor_id (identificados do compositor presente na tabela "compositores")
 - tipo_composicao_id (identificados do tipo de composição presente na tabela "tipos_composicoes")
 - descr(uma descrição de cada composição)
 */
 CREATE TABLE composicoes
 	(
 		composicao_id TINYINT NOT NULL,
-		compositor_id TINYINT NOT NULL,
 		tipo_composicao_id TINYINT NOT NULL,
 		descr VARCHAR(65),
 		CONSTRAINT pk_composicao_id
 		PRIMARY KEY (composicao_id),
-		CONSTRAINT fk_compositor_id
-		FOREIGN KEY (compositor_id) 
-		REFERENCES compositores(compositor_id),
 		CONSTRAINT fk_tipo_composicao_id
 		FOREIGN KEY (tipo_composicao_id) 
 		REFERENCES tipos_composicoes(tipo_composicao_id)
@@ -384,26 +361,57 @@ CREATE TABLE interpretes
 		REFERENCES tipos_interpretes(tipo_interprete_id)
 	) ON BDSpotPer_fg01
 /*
-Tabela "faixas_interpretes_comp", necessária para fazer a ligação entre as tabelas faixas, interpretes e composições
+Tabela "faixas_interpretes", necessária para fazer a ligação entre as tabelas faixas e interpretes
 campos:
 - interprete_id (identificador do interprete presente na tabela "interpretes")
 - faixa_id (identificados da faixa presente na tabela "faixas")
-- composicao_id (identificados da composição presente na tabela "composições")
 */
-CREATE TABLE faixas_interpretes_comp
+CREATE TABLE faixas_interpretes
 	(
 		interprete_id TINYINT NOT NULL,
 		faixa_id TINYINT NOT NULL,
-		composicao_id TINYINT NOT NULL,
+		
 		CONSTRAINT fk_interprete_id
 		FOREIGN KEY (interprete_id) 
 		REFERENCES interpretes(interprete_id),
-		CONSTRAINT fk_faixa_id
+		CONSTRAINT fk_faixas_interpretes_id
 		FOREIGN KEY (faixa_id) 
-		REFERENCES faixas(faixa_id),
+		REFERENCES faixas(faixa_id)		
+	) ON BDSpotPer_fg01
+	/*
+Tabela "faixas_compositores", necessária para fazer a ligação entre as tabelas faixas e copositores
+campos:
+- copositor_id (identificador do interprete presente na tabela "compositor")
+- faixa_id (identificados da faixa presente na tabela "faixas")
+*/
+CREATE TABLE faixas_compositores
+	(
+		compositor_id TINYINT NOT NULL,
+		faixa_id TINYINT NOT NULL,
+		
+		CONSTRAINT fk_compositor_id
+		FOREIGN KEY (compositor_id) 
+		REFERENCES compositores(compositor_id),
+		CONSTRAINT fk_faixas_compositores_id
+		FOREIGN KEY (faixa_id) 
+		REFERENCES faixas(faixa_id)		
+	) ON BDSpotPer_fg01
+/*
+Tabela "faixas_composicoes", necessária para fazer a ligação entre as tabelas faixas e composicoes
+campos:
+- faixa_id (identificados da faixa presente na tabela "faixas")
+- composicao_id (identificador da composicao presente na tabela "composicoes")
+*/
+CREATE TABLE faixas_composicoes
+	(
+		faixa_id TINYINT NOT NULL,
+		composicao_id TINYINT NOT NULL,
 		CONSTRAINT fk_composicao_id
 		FOREIGN KEY (composicao_id) 
-		REFERENCES composicoes(composicao_id)
+		REFERENCES composicoes(composicao_id),
+		CONSTRAINT fk_faixa_id
+		FOREIGN KEY (faixa_id) 
+		REFERENCES faixas(faixa_id)		
 	) ON BDSpotPer_fg01
 /*
 Tabela "interpretes_composicoes", necessária para fazer a ligação entre as tabelas interpretes e composições
@@ -429,28 +437,48 @@ GO
 	incluiremos alguns dados no banco de dados para poder executar as ações solicitadas no BDSpotPer
 	==============================================================================================
 */
+use BDSpotPer
+select * from cidades
 
-insert into paises values (1, 'Italia')
-insert into cidades values (1, 'Veneza', 1)
-insert into periodosmusicais values (1, 'Renascentista', '1450', '1600')
-insert into periodosmusicais values (2, 'Barroco', '1600', '1750')
-insert into periodosmusicais values (3, 'Clássico', '1750', '1810')
-insert into periodosmusicais values (4, 'Romântico', '1810', '1900')
-insert into periodosmusicais values (5, 'Moderno', '1900', '')
+insert into paises  (pais_id,	nome) 
+			 values (1, 'Italia')
+insert into cidades (cidade_id, nome, pais_id)
+			 values (1, 'Veneza', 1)
+insert into periodosmusicais(periodomusical_id, descr, atividade_inicio, atividade_fim)
+					  values(1, 'Renascentista', '1450', '1600')
+insert into periodosmusicais(periodomusical_id, descr, atividade_inicio, atividade_fim)
+				 	 values (2, 'Barroco', '1600', '1750')
+insert into periodosmusicais(periodomusical_id, descr, atividade_inicio, atividade_fim)
+				     values (3, 'Clássico', '1750', '1810')
+insert into periodosmusicais(periodomusical_id, descr, atividade_inicio, atividade_fim)
+					 values (4, 'Romântico', '1810', '1900')
+insert into periodosmusicais(periodomusical_id, descr, atividade_inicio, atividade_fim)
+					 values (5, 'Moderno', '1900', '')
 
-insert into compositores values (1, '1678-03-04', '1741-07-28', 'Antonio Lucio Vivaldi', 1, 2)
-insert into tipos_composicoes values (1, 'Conserto')
+insert into compositores(compositor_id, dt_nascimento, dt_morte, nome, cidade_id, periodomusical_id)
+				 values (1, '1678-03-04', '1741-07-28', 'Antonio Lucio Vivaldi', 1, 2)
+insert into tipos_composicoes(tipo_composicao_id, descr)
+					  values (1, 'Conserto')
+insert into tipos_composicoes(tipo_composicao_id, descr)
+					  values (2, 'Partitura')
 
-insert into composicoes values (1, 1, 1, 'Concerto nº 1 em mi maior, "La primavera", RV 269')
-insert into composicoes values (2, 1, 1, 'Concerto nº 2 em sol menor, "L''estate", RV 315')
-insert into composicoes values (3, 1, 1, 'Concerto nº 3 em fá maior, "L''autunno", RV 293')
-insert into composicoes values (4, 1, 1, 'Concerto nº 4 em fá menor, "L''inverno", RV 297')
-insert into composicoes values (5, 1, 1, 'Concerto nº 5 em mi maior, "La tempesta di mare", RV 253')
+insert into composicoes(composicao_id , tipo_composicao_id, descr)
+			    values (1, 1, 'Concerto nº 1 em mi maior, "La primavera", RV 269')
+insert into composicoes(composicao_id , tipo_composicao_id, descr)
+				values (2, 1, 'Concerto nº 2 em sol menor, "L''estate", RV 315')
+insert into composicoes(composicao_id , tipo_composicao_id, descr)
+			    values (3, 1, 'Concerto nº 3 em fá maior, "L''autunno", RV 293')
+insert into composicoes(composicao_id , tipo_composicao_id, descr)
+				values (4, 1, 'Concerto nº 4 em fá menor, "L''inverno", RV 297')
+insert into composicoes(composicao_id , tipo_composicao_id, descr)
+				values (5, 1, 'Concerto nº 5 em mi maior, "La tempesta di mare", RV 253')
 
 
-insert into tipos_interpretes values (1, 'maestro')
+insert into tipos_interpretes(tipo_interprete_id, descr)
+					  values (1, 'maestro')
 
-insert into interpretes values (1, 'Gabriel Pavel', 1)
+insert into interpretes(interprete_id, nome, tipo_interprete_id)
+				values (1, 'Gabriel Pavel', 1)
 
 insert into tipos_gravacao values (1, 'ADD')
 insert into tipos_gravacao values (2, 'DDD')
@@ -460,33 +488,51 @@ insert into gravadoras values (1, 'Advent Chamber Orchestra & Choir', null, null
 insert into tipos_compra values (1, 'fisica')
 insert into tipos_compra values (2, 'download')
 
-insert into albuns values (1, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica', 1, 1)
-insert into albuns values (2, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica 2', 2, 1)
-insert into albuns values (3, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica 3', 2, 1)
+insert into albuns(albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_compra_id, gravadora_id)
+		   values (1, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica', 1, 1)
+insert into albuns(albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_compra_id, gravadora_id)
+		   values (2, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica 2', 2, 1)
+insert into albuns(albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_compra_id, gravadora_id)
+		   values (3, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica 3', 2, 1)
 
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+	       values (1, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+	       values (2, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+		   values (3, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 1)
 
-insert into cds values (1, 1)
-insert into cds values (2, 1)
-insert into cds values (3, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+			values(4, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 2)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+		    values(5, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 2)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+			values(6, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 2)
 
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+			values(7, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 2, 3)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+			values(8, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 2, 3)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
+			values(9, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 2, 3)
 
-insert into faixas values (1, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 1)
-insert into faixas values (2, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 1)
-insert into faixas values (3, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 1)
+insert into faixas_interpretes (faixa_id, interprete_id) values (1, 1);
+insert into faixas_interpretes (faixa_id, interprete_id) values (2, 1);
+insert into faixas_interpretes (faixa_id, interprete_id) values (3, 1);
 
-insert into faixas values (4, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 2)
-insert into faixas values (5, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 2)
-insert into faixas values (6, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 2)
+insert into faixas_composicoes(faixa_id, composicao_id) values (1, 1);
+insert into faixas_composicoes(faixa_id, composicao_id) values (2, 1);
+insert into faixas_composicoes(faixa_id, composicao_id) values (3, 1);
+insert into faixas_composicoes(faixa_id, composicao_id) values (4, 2);
+insert into faixas_composicoes(faixa_id, composicao_id) values (5, 2);
+insert into faixas_composicoes(faixa_id, composicao_id) values (6, 1);
 
-insert into faixas values (7, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 2, 3)
-insert into faixas values (8, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 2, 3)
-insert into faixas values (9, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 2, 3)
+insert into faixas_compositores(faixa_id, compositor_id) values (1, 1);
+insert into faixas_compositores(faixa_id, compositor_id) values (2, 1);
+insert into faixas_compositores(faixa_id, compositor_id) values (3, 1);
+insert into faixas_compositores(faixa_id, compositor_id) values (6, 1);
 
-insert into faixas_interpretes_comp values (1, 1, 1);
-insert into faixas_interpretes_comp values (1, 2, 2);
-insert into faixas_interpretes_comp values (1, 3, 3);
-
-insert into playlists values (1, 'Clássicas', '17-10-2018 09:15:00')
+insert into playlists values (1, 'Clássicas', '17-10-2018 09:15:00', null, null)
 
 insert into playlists_faixas values (1, 1, null, null)
 insert into playlists_faixas values (1, 2, null, null)
@@ -502,26 +548,50 @@ Fim das inclusões de dados no banco de dados
 	DO COMPOSITOR E COMO SAIDA ALBUNS E OBRAS DESTE COMPOSITOR
 	==============================================================================================
 */
+
 CREATE FUNCTION BuscaCompositor(@Nome varchar)
 RETURNS TABLE
 AS
-RETURN (SELECT 
-		c.nome as 'Compositor',
+RETURN (select  distinct(c.nome) as 'Compositor',
 		a.descr as 'Albun',
 		co.descr as 'Obra composta'
 		FROM  albuns a,
 			  compositores c,
 			  composicoes co,
-			  faixas_interpretes_comp fic,
-			  faixas f,
-			  cds cd
-        WHERE a.albun_id = cd.albun_id AND
-			  f.cd_id = cd.cd_id AND
-			  fic.faixa_id = f.faixa_id AND
-			  fic.composicao_id = co.composicao_id AND
-			  co.compositor_id = c.compositor_id AND
+			  faixas_composicoes fc,
+			  faixas_compositores fcom,
+			  faixas f
+        WHERE a.albun_id = f.albun_id AND
+			  f.faixa_id = fc.faixa_id AND
+			  f.faixa_id = fcom.faixa_id AND
+			  fcom.compositor_id = c.compositor_id AND
+			  fc.composicao_id = co.composicao_id AND
 			  c.nome like '%' + @Nome + '%')
+GO
 /*
 ===================================================================================================
 */
 
+ --select * from BuscaCompositor('vivaldi');
+
+
+
+
+-- 4ª A) faixa deve possuir indice primario sobre o atributo codigo do album
+CREATE CLUSTERED INDEX I_faixa
+	on faixas (cd_id)
+GO
+--4ª B) faixa deve possuir indice secundario sobre o atributo composicao
+CREATE NONCLUSTERED INDEX I2_faixa
+	on faixas (tipo_composicao)
+GO
+--5ª visao
+
+CREATE VIEW V_album 
+WITH schemabinding
+AS
+	SELECT p.nome AS 'Nome da Playlist', count_big(*) AS 'Quantidade de albuns'
+	FROM playlist p
+	GROUP BY p.nome
+
+CREATE UNIQUE CLUSTERED INDEX I_V_album

@@ -13,16 +13,25 @@
 package view;
 
 import components.Albun;
-import components.Cd;
+import components.Compositor;
 import components.Faixa;
+import components.PlayList;
+import db.DbConn;
 import player.PlayFile;
 import tools.SearchFiles;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import javafx.beans.value.ChangeListener;
@@ -32,8 +41,13 @@ import javafx.scene.media.MediaPlayer;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.OverlayLayout;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
 import javax.swing.border.Border;
 
 
@@ -44,7 +58,13 @@ import javax.swing.border.Border;
 public class printComponents {
     Border blackline = BorderFactory.createLineBorder(Color.black);
     PlayFile playfile = new PlayFile();
+    // cria uma playlist para eventualmente adicionar faixas e salvar
+    PlayList playlist = new PlayList();
+    JFrame framePlayList = new JFrame("SALVAR PLAY LIST");
+    JPanel pnlListaFaixas = new JPanel(); 
+    JButton botaoSalvaPlayList = new JButton();
     
+
     // Aplica as alterações no painel principal adicionando a lista de albuns
     
     public void printAlbuns(JPanel painelPai, HashMap<String, Albun> albuns){
@@ -61,13 +81,16 @@ public class printComponents {
                 JPanel pnlAlbun = new JPanel(new GridBagLayout());
                 JLabel albunDescr = new JLabel();
                 albunDescr.setText(albun.getDescr());
+                albunDescr.setFont(new Font("Serif", Font.BOLD, 12));
+                albunDescr.setForeground(Color.BLUE);
+                albunDescr.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 albunDescr.addMouseListener(new MouseAdapter(){
                     public void mouseClicked(MouseEvent event){
-                        if(albun.getCds().isEmpty()){
-                            HashMap<String, Cd> cds = new Cd().listaCds(albun.getAlbunid());
-                            albun.setCds(cds);
+                        if(albun.getFaixas().isEmpty()){
+                            HashMap<String, Faixa> faixas = new Faixa().listaFaixas(String.valueOf(albun.getAlbunid()));
+                            albun.setFaixas(faixas);
                         }
-                        printCds(pnlAlbun, albun.getCds());
+                        printFaixas(pnlAlbun, albun.getFaixas());
                     }
                 });
                 pnlAlbun.add(albunDescr, constraints);
@@ -77,64 +100,116 @@ public class printComponents {
             }
         
         }
-        
+        botaoSalvaPlayList.setVisible(false);
+        botaoSalvaPlayList.setText("Salvar PlayList");
+        botaoSalvaPlayList.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                showFormPlayList();
+            }
+        });
+        painelPai.add(botaoSalvaPlayList, constraints);
     }
-    // função para incluir na tela a lista de cds referente a cada album 
-    public void printCds(JPanel painelPai, HashMap<String, Cd> cds){
-      //  painelPai.removeAll();
+    
+    // Aplica as alterações no painel principal adicionando a lista de compositores
+    
+    public void printCompositores(JPanel painelPai, HashMap<String, Compositor> compositores){
         painelPai.setBorder(blackline);
         GridBagConstraints constraints = new GridBagConstraints();
-        //constraints.anchor = GridBagConstraints.WEST;
-        //constraints.insets = new Insets(10, 10, 10, 10);
-        int numcd = 1;
-        constraints.gridy = 1;
-        for(Cd cd : cds.values()){
-            JPanel pnlCds = new JPanel(new GridBagLayout());
-            JButton cdButton = new JButton();
-            cdButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_cd.png")));
-            cdButton.setText(String.valueOf("CD Nº " + numcd));
-            cdButton.addMouseListener(new MouseAdapter(){
-                public void mouseClicked(MouseEvent event){
-                    if(cd.GetFaixas().isEmpty()){
-                        HashMap<String, Faixa> faixas = new Faixa().listaFaixas(String.valueOf(cd.getcdId()));
-                        cd.setFaixas(faixas);
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        constraints.insets = new Insets(10, 10, 10, 10);
+        constraints.gridx = 0;
+        
+        for(Compositor compositor : compositores.values()){
+            try{
+                JPanel pnlCompositores = new JPanel(new GridBagLayout());
+                JLabel compositorDescr = new JLabel();
+                compositorDescr.setText(compositor.getNome());
+                compositorDescr.setFont(new Font("Serif", Font.BOLD, 12));
+                compositorDescr.setForeground(Color.BLUE);
+                compositorDescr.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                System.out.println("Compositores: " + compositor.getNome());
+                compositorDescr.addMouseListener(new MouseAdapter(){
+                    public void mouseClicked(MouseEvent event){
                     }
-                    printFaixas((JPanel)pnlCds.getParent(), cd.GetFaixas(), cds.size());
-                }
-            });
-            constraints.gridx = numcd - 1;
-            pnlCds.add(cdButton, constraints);
-            painelPai.add(pnlCds, constraints);
-            painelPai.revalidate();
-            painelPai.repaint();
-            numcd++;
+                });
+                pnlCompositores.add(compositorDescr, constraints);
+                painelPai.add(pnlCompositores, constraints);
+            }catch(NullPointerException e){
+                e.printStackTrace();
+            }
+        
         }
+        
     }
+    // Aplica as alterações no painel principal adicionando a lista de playlists
+    
+    public void printPlayLists(JPanel painelPai, HashMap<String, PlayList> playlists){
+        painelPai.setBorder(blackline);
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        constraints.insets = new Insets(10, 10, 10, 10);
+        constraints.gridx = 0;
+        
+        for(PlayList playlist : playlists.values()){
+            try{
+                JPanel pnlPlaylists = new JPanel(new GridBagLayout());
+                JLabel compositorDescr = new JLabel();
+                compositorDescr.setText(playlist.getNome());
+                compositorDescr.setFont(new Font("Serif", Font.BOLD, 12));
+                compositorDescr.setForeground(Color.BLUE);
+                compositorDescr.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                compositorDescr.addMouseListener(new MouseAdapter(){
+                    public void mouseClicked(MouseEvent event){
+                        
+                        if(playlist.getFaixas().isEmpty()){
+                            playlist.setFaixas();
+                        }
+                        printFaixas(pnlPlaylists, playlist.getFaixas());
+                    }
+                });
+                pnlPlaylists.add(compositorDescr, constraints);
+                painelPai.add(pnlPlaylists, constraints);
+            }catch(NullPointerException e){
+                e.printStackTrace();
+            }
+        
+        }
+        
+    }
+    
     // função para incluir na tela a lista de faixas referente a cada cd
-    public void printFaixas(JPanel painelPai, HashMap<String, Faixa> faixas, int qtcds){
-     //   painelPai.removeAll();
+    public void printFaixas(JPanel painelPai, HashMap<String, Faixa> faixas){
+        
         painelPai.setBorder(blackline);
         
-        int countfaixas = 1;
         for(Faixa faixa: faixas.values()){
             GridBagConstraints constraints = new GridBagConstraints();
             constraints.anchor = GridBagConstraints.WEST;
             JPanel pnlFaixas = new JPanel(new GridBagLayout());
             JLabel faixaDescr = new JLabel();
             faixaDescr.setText(faixa.getDescr());
-            JCheckBox  cb = new JCheckBox ();
-            /*
-            cb.selectedProperty().addListener(new ChangeListener<Boolean>() {
-                public void changed(ObservableValue<? extends Boolean> ov,
-                Boolean old_val, Boolean new_val) {
-                    if(cb.isSelected()){
-
+            JCheckBox cb = new JCheckBox ();
+            cb.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (cb.isSelected()) {
+                        playlist.addFaixa(faixa.getFaixaId(), faixa);
+                        //showFormPlayList(painelPai, playlist);
+                        botaoSalvaPlayList.setVisible(true);
+                    } else {
+                        playlist.removeFaixa(faixa.getFaixaId());
+                        System.out.println(playlist.getFaixas().size());
+                        if(playlist.getFaixas().size() == 1){
+                            botaoSalvaPlayList.setVisible(false);
+                        }
                     }
                 }
             });
-            */
+           
             JButton playButton = new JButton();
-            playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/play.png")));
+            playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/play.png")));
             String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
             playButton.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent event){
@@ -159,12 +234,54 @@ public class printComponents {
             pnlFaixas.add(cb, constraints);
             constraints.gridx = 2;
             pnlFaixas.add(playButton, constraints);
-            constraints.gridwidth = qtcds;
             constraints.gridx = 0;
             painelPai.add(pnlFaixas, constraints);
             painelPai.revalidate();
             painelPai.repaint();
-            countfaixas++;
         }
+    }
+    public void showFormPlayList(){
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.anchor = GridBagConstraints.WEST;
+        framePlayList.setSize(500, 700); 
+        Popup popUpPlaylist; 
+        PopupFactory pf = new PopupFactory(); 
+        
+        pnlListaFaixas.setBackground(Color.WHITE); 
+        for(Faixa faixa: playlist.getFaixas().values()){
+            JLabel titulo = new JLabel(faixa.getDescr()); 
+            pnlListaFaixas.add(titulo); 
+        }
+        
+        popUpPlaylist = pf.getPopup(framePlayList, pnlListaFaixas, 180, 100); 
+        JLabel fieldNome = new JLabel("Nome da playlist:"); 
+        JTextField tfNomePlayList = new JTextField(20);
+        pnlListaFaixas.add(fieldNome);
+        pnlListaFaixas.add(tfNomePlayList);
+        JButton buttonSalvar = new JButton("SALVAR"); 
+        JButton buttonFechar = new JButton("FECHAR"); 
+        buttonFechar.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                framePlayList.setVisible(false); 
+            }
+        });
+        buttonSalvar.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                playlist.setPlaylistNewId();
+                playlist.setNome(tfNomePlayList.getText());
+                playlist.salvaPlaylist();
+                framePlayList.setVisible(false); 
+            }
+        });
+        constraints.gridy = 1;
+        constraints.gridx = 0;
+        pnlListaFaixas.add(buttonSalvar, constraints);
+        constraints.gridx = 1;
+        pnlListaFaixas.add(buttonFechar, constraints);
+        pnlListaFaixas.revalidate();
+        pnlListaFaixas.repaint();
+        framePlayList.add(pnlListaFaixas); 
+        framePlayList.setVisible(true); 
+        
     }
 }

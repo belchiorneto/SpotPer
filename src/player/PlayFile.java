@@ -33,6 +33,9 @@ public class PlayFile{
     public void stop(){
         player.pause();
     }
+    public double getDuration(){
+        return player.getTotalDuration().toSeconds();
+    }
     public MediaPlayer getClip(){
         return player;
     }

@@ -13,10 +13,15 @@
 package principal;
 
 import components.Albun;
+import components.Compositor;
 import components.Faixa;
+import components.PlayList;
 import db.DbConn;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -28,6 +33,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -44,7 +50,6 @@ public class SpotPer extends JFrame {
     private final JButton ButtonCompositores;
     private final JButton ButtonPlaylist;
     private final JButton ButtonWeb;
-    private final JButton ButtonVoltar;
     private final JPanel PainelBotoes;
     private final JPanel PainelCentral;
     private final JPanel PainelMaisTocadas;
@@ -52,7 +57,7 @@ public class SpotPer extends JFrame {
     
     public SpotPer() {
         super("SpotPer");
-        DbConn.OpenConnection();
+        DbConn connection = new DbConn();
         printComponents componentes = new printComponents();
         printWebComponents webComponentes = new printWebComponents();
         PainelBotoes = new JPanel(new GridBagLayout());
@@ -67,16 +72,18 @@ public class SpotPer extends JFrame {
         PainelCentralScrool.setViewportView(PainelCentral);
         
         ButtonAlbuns = new JButton();
-        ButtonAlbuns.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_albuns.png")));
+        ButtonAlbuns.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_albuns.png")));
+        ButtonAlbuns.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ButtonCompositores = new JButton();
-        ButtonCompositores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_compositores.png")));
+        ButtonCompositores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_compositores.png")));
+        ButtonCompositores.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ButtonPlaylist = new JButton();
-        ButtonPlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_playlist.png")));
+        ButtonPlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_playlist.png")));
+        ButtonPlaylist.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ButtonWeb = new JButton();
-        ButtonWeb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_web.png")));
-        ButtonVoltar = new JButton();
-        ButtonVoltar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_voltar.png")));
- 
+        ButtonWeb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_web.png")));
+        ButtonWeb.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;
         constraints.insets = new Insets(10, 10, 10, 10);
@@ -94,15 +101,75 @@ public class SpotPer extends JFrame {
         PainelBotoes.add(ButtonPlaylist, constraints);
         constraints.gridx = 3;
         PainelBotoes.add(ButtonWeb, constraints);
-        constraints.gridx = 4;
-        PainelBotoes.add(ButtonVoltar, constraints);
+       
         add(PainelBotoes, BorderLayout.NORTH);
         add(PainelMaisTocadas, BorderLayout.WEST);
         add(PainelCentralScrool, BorderLayout.CENTER);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // EDIT
+        if(!connection.OpenConnection()){
+            // connexão inválida
+            JLabel lblConnError = new JLabel("Erro de conexão com o banco de dados");
+            lblConnError.setFont(new Font("Serif", Font.BOLD, 14));
+            lblConnError.setForeground(Color.RED);
+            PainelCentral.add(lblConnError);
+        }else{
+            // mostra lista de albuns
+            componentes.printAlbuns(PainelCentral, new Albun().listaAlbuns());
+        }
         
-        // mostra lista de albuns
-        componentes.printAlbuns(PainelCentral, new Albun().listaAlbuns());
+        ButtonAlbuns.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                PainelCentral.removeAll();
+                componentes.printAlbuns(PainelCentral, new Albun().listaAlbuns());
+                PainelCentral.revalidate();
+                PainelCentral.repaint();
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ButtonAlbuns.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_albuns_h.png")));
+              
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ButtonAlbuns.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_albuns.png")));
+              
+            }
+        });
+        
+        ButtonCompositores.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                PainelCentral.removeAll();
+                componentes.printCompositores(PainelCentral, new Compositor().listaCompositores());
+                PainelCentral.revalidate();
+                PainelCentral.repaint();
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ButtonCompositores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_compositores_h.png")));
+              
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ButtonCompositores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_compositores.png")));
+              
+            }
+        });
+        ButtonPlaylist.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                PainelCentral.removeAll();
+                componentes.printPlayLists(PainelCentral, new PlayList().lista());
+                
+                PainelCentral.revalidate();
+                PainelCentral.repaint();
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ButtonPlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_playlist_h.png")));
+              
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ButtonPlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_playlist.png")));
+              
+            }
+        });
         ButtonWeb.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent event){
                 PainelCentral.removeAll();
@@ -112,14 +179,12 @@ public class SpotPer extends JFrame {
                 PainelCentral.revalidate();
                 PainelCentral.repaint();
             }
-        });
-        ButtonAlbuns.addMouseListener(new MouseAdapter(){
-            public void mouseClicked(MouseEvent event){
-                PainelCentral.removeAll();
-                componentes.printAlbuns(PainelCentral, new Albun().listaAlbuns());
-                
-                PainelCentral.revalidate();
-                PainelCentral.repaint();
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ButtonWeb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_web_h.png")));
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ButtonWeb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_web.png")));
             }
         });
         pack();

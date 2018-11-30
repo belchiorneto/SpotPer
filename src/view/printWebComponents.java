@@ -11,18 +11,18 @@
 
  */
 package view;
-
 import components.Albun;
-import components.Cd;
 import components.Faixa;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import javafx.scene.media.MediaPlayer;
 import javax.swing.BorderFactory;
@@ -73,19 +73,28 @@ public class printWebComponents {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;
         HashMap<String, Faixa> faixas = searchfiles.listaComposicoes("h2", "li", compositor);
+        Albun albun = new Albun();
+        albun.setNewId();
+        albun.setDescr(compositor);
+        String dataAtual = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        albun.setDt_compra(dataAtual);
+        albun.setDt_gravacao(dataAtual);
+        albun.setTipo_compra_id(1);
+        albun.setGravadora_id(1);
+        albun.setFaixas(faixas);
+        
         int count = 1;
-        for(Faixa faixa: faixas.values()){
+        for(Faixa faixa: albun.getFaixas().values()){
             JLabel nomeFaixa = new JLabel();
             nomeFaixa.setText(faixa.getDescr());
             nomeFaixa.setForeground(Color.blue);
-
             nomeFaixa.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent event){
                     
                 }
             });
             JButton playButton = new JButton();
-            playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/play.png")));
+            playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/play.png")));
             // test to see if a file exists
             
             String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
@@ -106,15 +115,31 @@ public class printWebComponents {
                 }
             });
             JButton downloadButton = new JButton();
-            downloadButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/spotper/icon_download.png")));
+            downloadButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_download.png")));
             downloadButton.setVisible(false);
             downloadButton.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent event){
+                    /*
+                    este site fornece arquivos de musica clássica gratuitos em mp3
+                    https://www.mfiles.co.uk/
+                    */
                     String urlfile = "https://www.mfiles.co.uk/"+ faixa.getUrlDownload();
                     try {
                         new tools.FileManager().download(urlfile, "C:/FBD/" + faixa.getDescr() + ".mp3");
                         downloadButton.setVisible(false);
                         playButton.setVisible(true);
+                        String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
+                        playfile.setClip(path);
+                        faixa.setTipoGravacaoID(1);
+                        //faixa.setDuracao(String.valueOf(playfile.getDuration()));
+                        System.out.println("Duraçao da faixa: " + playfile.getDuration());
+                        // inclui faixa no db
+                        if(!albun.exist()){
+                            albun.addToDb();                        
+                        }
+                        // inclui faixa no bd
+                        faixa.addToDB(albun.getAlbunid());
+                        
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

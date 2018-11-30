@@ -27,29 +27,22 @@ public class Faixa {
     private int faixa_id;
     private String duracao;
     private String descr;
-    private String tipo_gravacao;
+    private int tipoGravacaoId;
     private String url_download;
     private Interprete[] interpretes = new Interprete[5];
     private Compositor compositor;
     
-    public HashMap<String, Faixa> listaFaixas(String cdId){
+    public HashMap<String, Faixa> listaFaixas(String albunId){
         HashMap<String, Faixa> faixas = new HashMap<>();
         String SQL = "";
         SQL += "SELECT " 
-                + "f.faixa_id, "
+                + "DISTINCT(f.faixa_id), "
                 + "f.descr, "
-                + "f.duracao, "
-                + "c.nome "
+                + "f.duracao "
                 + "FROM "
-                + "faixas f, "
-                + "faixas_interpretes_comp fc, "
-                + "composicoes cp, "
-                + "compositores c "                
+                + "faixas f "
                 + "WHERE "
-                + "fc.faixa_id = f.faixa_id AND "
-                + "fc.composicao_id = cp.composicao_id AND "
-                + "cp.compositor_id = c.compositor_id AND "
-                + "f.cd_id = " + cdId;
+                + "f.albun_id = " + albunId;
         ResultSet rs = DbUtils.Lista(SQL);
         try{
             while (rs.next()) { 
@@ -57,27 +50,12 @@ public class Faixa {
                 faixa.setFaixaId(Integer.parseInt(rs.getString("faixa_id")));
                 faixa.setDuracao(rs.getString("duracao"));
                 faixa.setDescr(rs.getString("descr"));
-                Compositor compositor = new Compositor();
-                compositor.setNome(rs.getString("nome"));
-                faixa.setCompositor(compositor);
                 faixas.put(String.valueOf(faixa.getFaixaId()), faixa);
             }
         }catch(SQLException e){
             e.printStackTrace();
-        }finally {
-        // you should release your resources here
-            if (rs != null) { 
-                try {
-                    rs.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(Cd.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
         }
     return faixas;
-    }
-    public void setFaixaId(int faixaId){
-        faixa_id = faixaId;
     }
     public void setNewFaixaId(){
         int id = 0; 
@@ -96,6 +74,19 @@ public class Faixa {
             e.printStackTrace();
         }
         faixa_id = id;
+    }
+    public void addToDB(int albun_id){
+        String campos = "faixa_id, duracao, descr, tipo_gravacao_id, albun_id";
+        String dados = getFaixaId() + "," 
+                + getDuracao() + ","
+                + "'" + getDescr() + "',"
+                + getTipoGravacaoId() + ","
+                + albun_id;
+        String tabela = "faixas";
+        DbUtils.Insert(campos, dados, tabela);
+    }
+    public void setFaixaId(int faixaId){
+        faixa_id = faixaId;
     }
     public int getFaixaId(){
         return faixa_id;
@@ -118,11 +109,11 @@ public class Faixa {
     public String getUrlDownload(){
         return url_download;
     }
-    public void setTipoGravacao(String tipogravacao){
-        tipo_gravacao = tipogravacao;
+    public void setTipoGravacaoID(int tipogravacaoid){
+        tipoGravacaoId = tipogravacaoid;
     }
-    public String getTipoGravacao(){
-        return tipo_gravacao;
+    public int getTipoGravacaoId(){
+        return tipoGravacaoId;
     }
     public void setCompositor(Compositor comp){
         compositor = comp;
