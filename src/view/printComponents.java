@@ -284,4 +284,58 @@ public class printComponents {
         framePlayList.setVisible(true); 
         
     }
+    public void formEditAlbun(JPanel painelPai, Albun albun){
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(5, 5, 5, 5);
+        painelPai.removeAll();
+        JLabel lblIdAlbun = new JLabel("Id do Albun:"); 
+        JTextField jtfIdAlbun = new JTextField(20);
+        jtfIdAlbun.setText(String.valueOf(albun.getAlbunid()));
+        
+        JLabel lblNomeAlbun = new JLabel("Nome do Albun:"); 
+        JTextField jtfNomeAlbun = new JTextField(20);
+        jtfNomeAlbun.setText(albun.getDescr());
+        
+        JLabel lblPrCompra = new JLabel("Preço de Compra:"); 
+        JTextField jtfPrCompra = new JTextField(20);
+        jtfPrCompra.setText(String.valueOf(albun.getPrCompra()));
+        
+        JLabel lbDtCompra = new JLabel("Data da compra:"); 
+        JTextField jtfDtCompra = new JTextField(20);
+        jtfDtCompra.setText(albun.getDtCompra());
+        
+        JLabel lbDtGravacao = new JLabel("Data da Gravação:"); 
+        JTextField jtfDtGravacao = new JTextField(20);
+        jtfDtGravacao.setText(albun.getDtGravacao());
+        
+        JButton salvaAlteracao = new JButton("Salvar");
+        salvaAlteracao.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent event){
+                albun.setAlbunid(Integer.parseInt(jtfIdAlbun.getText()));
+                albun.setDescr(jtfNomeAlbun.getText());
+                albun.setPr_compra(Float.parseFloat(jtfPrCompra.getText()));
+                albun.setDt_compra(jtfDtCompra.getText());
+                albun.setDt_gravacao(jtfDtGravacao.getText());
+                albun.updateAlbun();
+            }
+        });
+       
+        constraints.gridy = 1;
+        painelPai.add(lblNomeAlbun, constraints);
+        painelPai.add(jtfNomeAlbun, constraints);
+        constraints.gridy = 2;
+        painelPai.add(lblPrCompra, constraints);
+        painelPai.add(jtfPrCompra, constraints);
+        constraints.gridy = 3;
+        painelPai.add(lbDtCompra, constraints);
+        painelPai.add(jtfDtCompra, constraints);
+        constraints.gridy = 4;
+        painelPai.add(lbDtGravacao, constraints);
+        painelPai.add(jtfDtGravacao, constraints);
+        constraints.gridy = 5;
+        painelPai.add(salvaAlteracao, constraints);
+        painelPai.revalidate();
+        painelPai.repaint();
+    }
 }

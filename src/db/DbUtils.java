@@ -33,6 +33,14 @@ public class DbUtils {
             e.printStackTrace();
        }
    }
+    public static void update(String sql){
+       System.out.println(sql);
+        try{
+           stmt.executeUpdate(sql);
+        }catch (SQLException e) {
+            e.printStackTrace();
+       }
+   }
     public static ResultSet Lista(String SQL){
        System.out.println(SQL);
        ResultSet rs = null;

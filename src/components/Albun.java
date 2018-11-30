@@ -120,6 +120,41 @@ public class Albun {
         }
         return albuns;
     }
+    public Albun buscaAlbun(String termoBusca){
+        Albun albun = new Albun();
+        String SQL = "";
+        SQL += "SELECT " 
+                + "* "
+                + "FROM "
+                + "albuns "
+                + "WHERE "
+                + "descr like '%"+ termoBusca +"%';";
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            if(rs.next()) {
+                albun.albun_id = Integer.parseInt(rs.getString("albun_id"));
+                albun.descr = rs.getString("descr");
+                albun.dt_compra = rs.getString("dt_compra");
+                albun.dt_gravacao = rs.getString("dt_gravacao");
+                albun.tipo_compra_id = Integer.parseInt(rs.getString("tipo_compra_id"));
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return albun;
+    }
+    public void updateAlbun(){
+        String SQL = "";
+        SQL += "UPDATE albuns " 
+                + "SET "
+                + "descr = '" + getDescr() + "' , "
+                + "pr_compra =  '" + getPrCompra() + "' , "
+                + "dt_compra =  '" + getDtCompra() + "' , "
+                + "dt_gravacao =  '" + getDtGravacao() + "' "
+                + "WHERE "
+                + "albun_id = " + getAlbunid();
+        DbUtils.update(SQL);
+    }
     public void setDescr(String descricao){
         descr = descricao;
     }

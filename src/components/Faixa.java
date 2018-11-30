@@ -76,12 +76,13 @@ public class Faixa {
         faixa_id = id;
     }
     public void addToDB(int albun_id){
-        String campos = "faixa_id, duracao, descr, tipo_gravacao_id, albun_id";
+        String campos = "faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id";
         String dados = getFaixaId() + "," 
                 + getDuracao() + ","
                 + "'" + getDescr() + "',"
                 + getTipoGravacaoId() + ","
-                + albun_id;
+                + albun_id + ","
+                + "1";
         String tabela = "faixas";
         DbUtils.Insert(campos, dados, tabela);
     }

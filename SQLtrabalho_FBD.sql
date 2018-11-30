@@ -10,6 +10,7 @@ Projetar banco de dados para um aplicativo de gerenciamento de músicas semelhant
 Este documento faz parte do projeto e contém as informações e scripts necessários para criação do banco de dados
 em ambiente "SQL Server" ou "PostgreSQL"
 ================================================================================================*/
+
 CREATE DATABASE	BDSpotPer
 ON
 	PRIMARY
@@ -131,11 +132,16 @@ CREATE TABLE faixas
 		descr VARCHAR(255),
 		tipo_gravacao_id TINYINT NOT NULL,
 		albun_id TINYINT NOT NULL,
+		tipo_composicao_id TINYINT NOT NULL,
 		
 		CONSTRAINT pk_faixa_id
 		PRIMARY KEY (faixa_id),
-		CONSTRAINT fk_cd_id
-		FOREIGN KEY( albun_id ) REFERENCES albuns ( albun_id )
+		
+		CONSTRAINT fk_albun_id
+		FOREIGN KEY( albun_id ) 
+		REFERENCES albuns ( albun_id )
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
 		-- adcicionaremos a fk tipo_gravacao_id depois de criada a tabela "tipos_gravacoes"
 	) ON BDSpotPer_fg02
 
@@ -214,10 +220,14 @@ CREATE TABLE playlists_faixas
 		dt_ultimo_play DATETIME,
 		CONSTRAINT fk_playlist_faixa_id
 		FOREIGN KEY (playlist_id) 
-		REFERENCES playlists(playlist_id),
+		REFERENCES playlists(playlist_id)
+		ON DELETE CASCADE,
+
 		CONSTRAINT fk_faixa_playlist_id
 		FOREIGN KEY (faixa_id) 
 		REFERENCES faixas(faixa_id)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
 	) ON BDSpotPer_fg02
 /*
 Tabela "periodosmusicais", armazena as informações de periodos musicais
@@ -374,9 +384,12 @@ CREATE TABLE faixas_interpretes
 		CONSTRAINT fk_interprete_id
 		FOREIGN KEY (interprete_id) 
 		REFERENCES interpretes(interprete_id),
+		
 		CONSTRAINT fk_faixas_interpretes_id
 		FOREIGN KEY (faixa_id) 
 		REFERENCES faixas(faixa_id)		
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
 	) ON BDSpotPer_fg01
 	/*
 Tabela "faixas_compositores", necessária para fazer a ligação entre as tabelas faixas e copositores
@@ -392,9 +405,12 @@ CREATE TABLE faixas_compositores
 		CONSTRAINT fk_compositor_id
 		FOREIGN KEY (compositor_id) 
 		REFERENCES compositores(compositor_id),
+		
 		CONSTRAINT fk_faixas_compositores_id
 		FOREIGN KEY (faixa_id) 
 		REFERENCES faixas(faixa_id)		
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
 	) ON BDSpotPer_fg01
 /*
 Tabela "faixas_composicoes", necessária para fazer a ligação entre as tabelas faixas e composicoes
@@ -409,9 +425,12 @@ CREATE TABLE faixas_composicoes
 		CONSTRAINT fk_composicao_id
 		FOREIGN KEY (composicao_id) 
 		REFERENCES composicoes(composicao_id),
+		
 		CONSTRAINT fk_faixa_id
 		FOREIGN KEY (faixa_id) 
 		REFERENCES faixas(faixa_id)		
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
 	) ON BDSpotPer_fg01
 /*
 Tabela "interpretes_composicoes", necessária para fazer a ligação entre as tabelas interpretes e composições
@@ -426,9 +445,11 @@ CREATE TABLE interpretes_composicoes
 		CONSTRAINT fk_interpretes_composicoes_id
 		FOREIGN KEY (interprete_id) 
 		REFERENCES interpretes(interprete_id),
+		
 		CONSTRAINT fk_composicoes_interpretes_id
 		FOREIGN KEY (composicao_id) 
 		REFERENCES composicoes(composicao_id)
+		ON DELETE CASCADE
 	) ON BDSpotPer_fg01
 
 GO
@@ -437,8 +458,6 @@ GO
 	incluiremos alguns dados no banco de dados para poder executar as ações solicitadas no BDSpotPer
 	==============================================================================================
 */
-use BDSpotPer
-select * from cidades
 
 insert into paises  (pais_id,	nome) 
 			 values (1, 'Italia')
@@ -495,26 +514,26 @@ insert into albuns(albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_comp
 insert into albuns(albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_compra_id, gravadora_id)
 		   values (3, 5000, '2018-06-06 08:00:00', '1768-10-12', 'O melhor da música clássica 3', 2, 1)
 
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-	       values (1, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 1)
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-	       values (2, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 1)
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-		   values (3, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+	       values (1, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 1, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+	       values (2, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 1, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+		   values (3, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 1, 1)
 
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-			values(4, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 2)
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-		    values(5, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 2)
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-			values(6, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 2)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+			values(4, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 1, 2, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+		    values(5, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 1, 2, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+			values(6, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 1, 2, 1)
 
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-			values(7, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 2, 3)
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-			values(8, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 2, 3)
-insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id)
-			values(9, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 2, 3)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+			values(7, '00:05:20', 'Credo in unum Deum, do Credo em mi menor (RV 591) para coro e orquestra', 2, 3, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+			values(8, '00:04:20', 'Allegro - Adagio e spiccato - Allegro, do Concerto para dois violinos em ré menor, Op. 3 No. 11', 2, 3, 1)
+insert into faixas(faixa_id, duracao, descr, tipo_gravacao_id, albun_id, tipo_composicao_id)
+			values(9, '00:08:30', 'Allegro do concerto para violino Primavera, das Quatro Estações', 2, 3, 1)
 
 insert into faixas_interpretes (faixa_id, interprete_id) values (1, 1);
 insert into faixas_interpretes (faixa_id, interprete_id) values (2, 1);
@@ -574,24 +593,132 @@ GO
 
  --select * from BuscaCompositor('vivaldi');
 
-
+ /*
+ 3ª A) Um album com faixas de musicas do periodo barroco só pode ser adquirido caso o tipo de gravação
+ seja DDD
+ Estratégia: criação de um trigger que irá verificar, no momento da inclusão/update de faixas
+ 1 - se o periodo é barroco
+ 2 - se o tipo de gravação é DDD
+ */
+/*
+CREATE TRIGGER TGR_RESTRICAO_BARROCO
+ON faixas
+FOR INSERT,UPDATE
+AS
+BEGIN
+    DECLARE
+    @PERIODO CHAR(7),
+    @TIPO_GRAVACAO CHAR(3),
+	@ALBUN_ID TINYINT
+	
+ 
+    SELECT @ALBUN_ID = id_albun FROM INSERTED
+	SELECT @PERIODO = descr FROM dbo.periodosmusicais
+    UPDATE CAIXA SET SALDO_FINAL = SALDO_FINAL + @VALOR
+    WHERE DATA = @DATA
+END
+GO
+*/
+ /*
+ 3ª B) um Album não pode ter mais que 64 faixas (musicas)
+ Estratégia: Criação de um trigger na tabela faixas pra contar a quantidade de faixas que já existem 
+ para o id do albun que está sendo inserido
+ */
+CREATE TRIGGER albumLimite_trigger
+ON faixas
+FOR INSERT,UPDATE
+AS
+BEGIN
+    DECLARE
+    @ALBUN_ID TINYINT,
+	@QTDE_FAIXAS TINYINT,
+	@str_invalido char(40)
+	
+	SELECT @ALBUN_ID = albun_id FROM INSERTED
+	SELECT @QTDE_FAIXAS = COUNT(*) 
+	FROM dbo.faixas
+	WHERE albun_id = @ALBUN_ID
+	set @str_invalido='Quantidade de faixas: '+cast(@QTDE_FAIXAS as varchar(2))+
+      ' inválida'
+	IF (@QTDE_FAIXAS > 63)
+		raiserror(@str_invalido,16,1)
+		ROLLBACK TRANSACTION
+END
+GO
 
 
 -- 4ª A) faixa deve possuir indice primario sobre o atributo codigo do album
+-- removendo as chaves estrangeiras
+ALTER TABLE faixas_composicoes
+DROP CONSTRAINT fk_faixa_id
+ALTER TABLE faixas_compositores
+DROP CONSTRAINT fk_faixas_compositores_id
+ALTER TABLE faixas_interpretes
+DROP CONSTRAINT fk_faixas_interpretes_id
+ALTER TABLE playlists_faixas
+DROP CONSTRAINT fk_faixa_playlist_id
+-- removendo a chave primaria
+ALTER TABLE faixas
+DROP CONSTRAINT pk_faixa_id
+-- agora conseguimos criar o indice
 CREATE CLUSTERED INDEX I_faixa
-	on faixas (cd_id)
+	ON faixas (albun_id)
+	WITH (FILLFACTOR = 100);  
+-- precisamos recriar as chaves removidas
+ALTER TABLE faixas
+ADD CONSTRAINT pk_faixa_id
+PRIMARY KEY (faixa_id)
+
+ALTER TABLE faixas_composicoes
+ADD CONSTRAINT fk_faixa_id
+FOREIGN KEY (faixa_id) 
+REFERENCES faixas(faixa_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+
+ALTER TABLE faixas_compositores
+ADD CONSTRAINT fk_faixas_compositores_id
+FOREIGN KEY (faixa_id) 
+REFERENCES faixas(faixa_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+
+ALTER TABLE faixas_interpretes
+ADD CONSTRAINT fk_faixas_interpretes_id
+FOREIGN KEY (faixa_id) 
+REFERENCES faixas(faixa_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+
+ALTER TABLE playlists_faixas
+ADD CONSTRAINT fk_faixa_playlist_id
+FOREIGN KEY (faixa_id) 
+REFERENCES faixas(faixa_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+
 GO
 --4ª B) faixa deve possuir indice secundario sobre o atributo composicao
 CREATE NONCLUSTERED INDEX I2_faixa
-	on faixas (tipo_composicao)
+	ON faixas (tipo_composicao_id)
+	WITH (FILLFACTOR = 100);  
 GO
 --5ª visao
 
 CREATE VIEW V_album 
 WITH schemabinding
 AS
-	SELECT p.nome AS 'Nome da Playlist', count_big(*) AS 'Quantidade de albuns'
-	FROM playlist p
+	SELECT 
+		p.nome AS 'Nome da PlayList', count(DISTINCT(f.albun_id)) as 'Quantidade de Albuns' 
+	FROM 
+		dbo.playlists p, dbo.playlists_faixas p2, dbo.faixas f
+	WHERE 
+		p2.faixa_id = f.faixa_id and 
+		p2.playlist_id = p.playlist_id
 	GROUP BY p.nome
 
-CREATE UNIQUE CLUSTERED INDEX I_V_album
+--select * from V_album
+drop trigger TGR_REMOVE_FAIXAS_ALBUN
+SELECT * FROM albuns
+select * from faixas
+delete from albuns where albun_id = 1
