@@ -11,65 +11,20 @@ Este documento faz parte do projeto e contém as informações e scripts necessário
 em ambiente "SQL Server" ou "PostgreSQL"
 ================================================================================================*/
 
-/*
-	ITEM 6 DA PARTE 2 DO BDSpotPer, IMPLEMENTAR FUNÇÃO QUE TENHA COMO ENTRADA NOME OU PARTE DO NOME 
-	DO COMPOSITOR E COMO SAIDA ALBUNS E OBRAS DESTE COMPOSITOR
-	==============================================================================================
-*/
+
 USE BDSpotPer
 GO
-CREATE FUNCTION BuscaCompositor(@Nome varchar)
-RETURNS TABLE
-AS
-RETURN (select  distinct(c.nome) as 'Compositor',
-		a.descr as 'Albun',
-		co.descr as 'Obra composta'
-		FROM  albuns a,
-			  compositores c,
-			  composicoes co,
-			  faixas_composicoes fc,
-			  faixas_compositores fcom,
-			  faixas f
-        WHERE a.albun_id = f.albun_id AND
-			  f.faixa_id = fc.faixa_id AND
-			  f.faixa_id = fcom.faixa_id AND
-			  fcom.compositor_id = c.compositor_id AND
-			  fc.composicao_id = co.composicao_id AND
-			  c.nome like '%' + @Nome + '%')
-GO
+
 /*
-===================================================================================================
-*/
-
- --select * from BuscaCompositor('vivaldi');
-
- /*
  3ª A) Um album com faixas de musicas do periodo barroco só pode ser adquirido caso o tipo de gravação
  seja DDD
  Estratégia: criação de um trigger que irá verificar, no momento da inclusão/update de faixas
  1 - se o periodo é barroco
  2 - se o tipo de gravação é DDD
- */
-/*
-CREATE TRIGGER TGR_RESTRICAO_BARROCO
-ON faixas
-FOR INSERT,UPDATE
-AS
-BEGIN
-    DECLARE
-    @PERIODO CHAR(7),
-    @TIPO_GRAVACAO CHAR(3),
-	@ALBUN_ID TINYINT
-	
  
-    SELECT @ALBUN_ID = id_albun FROM INSERTED
-	SELECT @PERIODO = descr FROM dbo.periodosmusicais
-    UPDATE CAIXA SET SALDO_FINAL = SALDO_FINAL + @VALOR
-    WHERE DATA = @DATA
-END
-GO
-*/
- /*
+ */
+
+/*
  3ª B) um Album não pode ter mais que 64 faixas (musicas)
  Estratégia: Criação de um trigger na tabela faixas pra contar a quantidade de faixas que já existem 
  para o id do albun que está sendo inserido
@@ -99,9 +54,17 @@ BEGIN
 END
 GO
 
+/*
+ 3ª C) No caso de remoção de um album, todas as faixas devem ser removidas
+ Estratégia: Foi incluso no script de criação das tabelas específicas, 
+ a clausula ON DELETE CASCADE E ON UPDATE CASCADE, no momento de criação das chaves estrangeiras
 
--- 4ª A) faixa deve possuir indice primario sobre o atributo codigo do album
--- removendo as chaves estrangeiras
+ */
+
+/*
+4ª A) faixa deve possuir indice primario sobre o atributo codigo do album
+removemos as chaves estrangeiras afetadas, criamos o indice e depois recriamos as chaves estrangeiras
+*/
 ALTER TABLE faixas_composicoes
 DROP CONSTRAINT fk_faixa_id
 ALTER TABLE faixas_compositores
@@ -164,29 +127,171 @@ CREATE NONCLUSTERED INDEX I2_faixa
 	WITH (FILLFACTOR = 100);  
 GO
 
---5ª visao
+/*
+5ª Criar Visão materializada com nome da playlist e quantidade de albuns
+Alterações necessárias para que se possa incluir index em uma view, segundo documentação em:
+https://docs.microsoft.com/en-us/sql/relational-databases/views/create-indexed-views?view=sql-server-2017
+*/
+SET NUMERIC_ROUNDABORT OFF;  
+SET ANSI_PADDING, ANSI_WARNINGS, CONCAT_NULL_YIELDS_NULL, ARITHABORT,  
+    QUOTED_IDENTIFIER, ANSI_NULLS ON;  
+GO  
+
+IF OBJECT_ID ('V_album', 'view') IS NOT NULL  
+DROP VIEW V_album ; 
+GO
+
 
 CREATE VIEW V_album 
 WITH schemabinding
 AS
 	SELECT 
-		p.nome AS 'Nome da PlayList', count(DISTINCT(f.albun_id)) as 'Quantidade de Albuns' 
+		p.playlist_id, p.nome AS 'Nome da PlayList', COUNT_BIG(*) as 'Quantidade de Albuns' 
 	FROM 
 		dbo.playlists p, dbo.playlists_faixas p2, dbo.faixas f
 	WHERE 
 		p2.faixa_id = f.faixa_id and 
 		p2.playlist_id = p.playlist_id
-	GROUP BY p.nome
+	GROUP BY p.nome, p.playlist_id
 
 GO
---select * from V_album
 
---ITEM (i)(c)
---data de compra do album deve ser de um ano posterior a data 01-01-2000 00:00:00
+--Criando um index para a View.  
+CREATE UNIQUE CLUSTERED INDEX inx_V_album  
+    ON V_album (playlist_id);  
+GO  
+
+-- select * from V_album -- TESTE
+
+/*
+	6ª) IMPLEMENTAR FUNÇÃO QUE TENHA COMO ENTRADA NOME OU PARTE DO NOME 
+	DO COMPOSITOR E COMO SAIDA ALBUNS E OBRAS DESTE COMPOSITOR
+	==============================================================================================
+*/
+CREATE FUNCTION BuscaCompositor(@Nome varchar)
+RETURNS TABLE
+AS
+RETURN (select  distinct(c.nome) as 'Compositor',
+		a.descr as 'Albun',
+		co.descr as 'Obra composta'
+		FROM  albuns a,
+			  compositores c,
+			  composicoes co,
+			  faixas_composicoes fc,
+			  faixas_compositores fcom,
+			  faixas f
+        WHERE a.albun_id = f.albun_id AND
+			  f.faixa_id = fc.faixa_id AND
+			  f.faixa_id = fcom.faixa_id AND
+			  fcom.compositor_id = c.compositor_id AND
+			  fc.composicao_id = co.composicao_id AND
+			  c.nome like '%' + @Nome + '%')
+GO
+--select * from BuscaCompositor('vivaldi'); -- teste
+
+
+/*
+ Questão 9, Item a: Listar albuns com preço de compra maior que a média de compra dos preços de todos os albuns
+*/
+SELECT descr
+FROM albuns
+WHERE pr_compra > 
+			(
+				SELECT AVG(pr_compra) 
+				FROM albuns
+			)
+			
+GO
+/*
+ Questão 9, Item b: Listar nome da gravadora com maior número de playlists que possuem pelo menos uma faixa
+ composta por um compositor
+*/
+
+CREATE FUNCTION ListaGravadoras(@nomeCompositor varchar(50))
+RETURNS TABLE
+AS
+RETURN (SELECT count(p.playlist_id) as 'qt_plays', g.nome as 'nome_gravadora'
+			FROM 
+				gravadoras g, 
+				albuns a, 
+				faixas f, 
+				faixas_compositores fc,
+				compositores c,
+				playlists p, 
+				playlists_faixas pf
+			WHERE a.albun_id = f.albun_id AND
+				f.faixa_id = pf.faixa_id AND
+				fc.faixa_id = f.faixa_id AND
+				fc.compositor_id = c.compositor_id AND
+				pf.playlist_id = p.playlist_id AND
+				c.nome like '%' + @nomeCompositor + '%'
+			GROUP BY p.playlist_id, g.nome, a.descr)
+GO
+SELECT DISTINCT(nome_gravadora) as 'Gravadora', MAX(qt_plays) OVER (PARTITION BY nome_gravadora) as 'playlists'
+FROM ListaGravadoras('Vivaldi')
+GROUP BY nome_gravadora, qt_plays
+GO
+
+/*
+ Questão 9, Item C: Listar nome do compositor com maior numero de faixas nas playlists existentes
+*/
+
+CREATE FUNCTION ListaCompositor()
+RETURNS TABLE
+AS
+RETURN (SELECT count(f.faixa_id) as 'qt_faixas', c.nome as 'nome_compositor'
+			FROM 
+				faixas f, 
+				faixas_compositores fc,
+				compositores c,
+				playlists p, 
+				playlists_faixas pf
+			WHERE 
+				f.faixa_id = pf.faixa_id AND
+				fc.faixa_id = f.faixa_id AND
+				fc.compositor_id = c.compositor_id AND
+				pf.playlist_id = p.playlist_id
+			GROUP BY p.playlist_id, c.nome)
+GO
+
+SELECT DISTINCT(nome_compositor) as 'Compositor', MAX(qt_faixas) OVER (PARTITION BY nome_compositor) as 'Faixas'
+FROM ListaCompositor()
+GROUP BY nome_compositor, qt_faixas
+/*
+ Questão 9, Item D
+*/
+/*
+SELECT nome_playlist
+	FROM playlist p
+		inner join playlist pf
+			ON pf.playlist_id=p.playlist_id
+		inner join faixas f
+			ON f.faixa_id=pf.faixa_id
+		inner join faixas_composicoes fc
+			ON fc.faixa_id=f.faixa_id
+		inner join composicoes c
+			ON fc.composicao_id= c.composicao_id
+		inner join compositores co
+			ON co.compositor_id = f.com
+		inner join periodosmusicais pm
+			ON pm.periodomusical_id = 
+WHERE c.descr = 'Concerto' and pm.descr = 'Barroco'
+GO
+*/
+
+/*
+===================================================================================================
+OUTRAS RESTRIÇÕES
+ITEM (i)(c)
+data de compra do album deve ser de um ano posterior a data 01-01-2000 00:00:00
+*/
 ALTER TABLE albuns ADD CONSTRAINT CK_dt_compra
 CHECK (dt_compra >= '01-01-2000 00:00:00')
 GO
---Considerando tipo compra 1= ADD e 2=DDD
+/*
+ITEM (i)(E)
+Considerando tipo compra 1= ADD e 2=DDD
+*/
 
 CREATE TRIGGER media_pr_compra_trigger
 ON dbo.albuns
@@ -215,78 +320,6 @@ END
 
 GO
 
-/*
- Questão 9, Item a
-*/
-SELECT descr
-FROM albuns
-WHERE pr_compra > 
-			(
-				SELECT AVG(pr_compra) 
-				FROM albuns
-			)
-			
-/*
- Questão 9, Item b
-*/
-GO
-
-SELECT g.nome
-FROM gravadoras g inner join albuns a
-	ON g.gravadora_id=a.gravadora_id
-	inner join faixas f
-	ON a.albun_id=f.albun_id
-	inner join playlists_faixas pf
-	ON pf.faixa_id=f.faixa_id
-	inner join faixas_compositores fc
-	ON f.faixa_id= fc.faixa_id 
-	inner join compositores c
-	ON fc.faixa_id = c.compositor_id
-WHERE c.nome = 'Devorack'
-GO
-
-/*
- Questão 9, Item c
-*/
-
-CREATE FUNCTION ListaGravadoras()
-RETURNS TABLE
-AS
-RETURN (SELECT count(p.playlist_id) as 'qt_plays', g.nome as 'nome_gravadora'
-			FROM gravadoras g, albuns a, faixas f, playlists p, playlists_faixas pf
-			WHERE a.albun_id = f.albun_id and
-				f.faixa_id = pf.faixa_id and
-				pf.playlist_id = p.playlist_id
-			GROUP BY p.playlist_id, g.nome, a.descr)
-GO
-
-SELECT DISTINCT(nome_gravadora) as 'Gravadora', MAX(qt_plays) as 'playlists'
-FROM ListaGravadoras()
-GROUP BY nome_gravadora, qt_plays
-
-GO
-
-/*
- Questão 9, Item D
-*/
-/*
-SELECT nome_playlist
-	FROM playlist p
-		inner join playlist pf
-			ON pf.playlist_id=p.playlist_id
-		inner join faixas f
-			ON f.faixa_id=pf.faixa_id
-		inner join faixas_composicoes fc
-			ON fc.faixa_id=f.faixa_id
-		inner join composicoes c
-			ON fc.composicao_id= c.composicao_id
-		inner join compositores co
-			ON co.compositor_id = f.com
-		inner join periodosmusicais pm
-			ON pm.periodomusical_id = 
-WHERE c.descr = 'Concerto' and pm.descr = 'Barroco'
-GO
-*/
 /*
 Conferir tempo total de uma playlist. Na clausula where, modificar o id
 */
