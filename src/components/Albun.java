@@ -56,8 +56,8 @@ public class Albun {
         String campos = "albun_id, pr_compra, dt_compra, dt_gravacao, descr, tipo_compra_id, gravadora_id";
         String dados = getAlbunid() + "," 
                 + getPrCompra() + ","
-                + getDtCompra() + ","
-                + getDtGravacao() + ","
+                + "'" + getDtCompra() + "',"
+                + "'" + getDtGravacao() + "',"
                 + "'" + getDescr() + "',"
                 + getTipoCompraId() + ","
                 + getGravadoraId();
