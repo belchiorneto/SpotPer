@@ -36,8 +36,8 @@ FOR INSERT,UPDATE
 AS
 BEGIN
     DECLARE
-    @ALBUN_ID TINYINT,
-	@QTDE_FAIXAS TINYINT,
+    @ALBUN_ID SMALLINT,
+	@QTDE_FAIXAS SMALLINT,
 	@str_invalido char(40)
 	
 	SELECT @ALBUN_ID = albun_id FROM INSERTED
@@ -66,13 +66,13 @@ GO
 removemos as chaves estrangeiras afetadas, criamos o indice e depois recriamos as chaves estrangeiras
 */
 ALTER TABLE faixas_composicoes
-DROP CONSTRAINT fk_faixa_id
+DROP CONSTRAINT pk_faixa_composicao_id
 ALTER TABLE faixas_compositores
-DROP CONSTRAINT fk_faixas_compositores_id
+DROP CONSTRAINT pk_faixa_compositor_id
 ALTER TABLE faixas_interpretes
-DROP CONSTRAINT fk_faixas_interpretes_id
+DROP CONSTRAINT pk_faixa_interpret_id
 ALTER TABLE playlists_faixas
-DROP CONSTRAINT fk_faixa_playlist_id
+DROP CONSTRAINT pk_playlist_faixa_id
 -- removendo a chave primaria
 ALTER TABLE faixas
 DROP CONSTRAINT pk_faixa_id
@@ -90,35 +90,25 @@ precisamos recriar as chaves removidas
 
 ALTER TABLE faixas
 ADD CONSTRAINT pk_faixa_id
-PRIMARY KEY (faixa_id)
+PRIMARY KEY (faixa_id, albun_id)
 
 ALTER TABLE faixas_composicoes
-ADD CONSTRAINT fk_faixa_id
-FOREIGN KEY (faixa_id) 
-REFERENCES faixas(faixa_id)
-ON DELETE CASCADE
-ON UPDATE CASCADE
+ADD CONSTRAINT pk_faixa_composicao_id
+PRIMARY KEY (faixa_id, composicao_id) 
 
 ALTER TABLE faixas_compositores
-ADD CONSTRAINT fk_faixas_compositores_id
-FOREIGN KEY (faixa_id) 
-REFERENCES faixas(faixa_id)
-ON DELETE CASCADE
-ON UPDATE CASCADE
+ADD CONSTRAINT pk_faixas_compositores_id
+PRIMARY KEY (faixa_id, compositor_id) 
+
 
 ALTER TABLE faixas_interpretes
-ADD CONSTRAINT fk_faixas_interpretes_id
-FOREIGN KEY (faixa_id) 
-REFERENCES faixas(faixa_id)
-ON DELETE CASCADE
-ON UPDATE CASCADE
+ADD CONSTRAINT pk_faixas_interpretes_id
+PRIMARY KEY (faixa_id, interprete_id) 
+
 
 ALTER TABLE playlists_faixas
-ADD CONSTRAINT fk_faixa_playlist_id
-FOREIGN KEY (faixa_id) 
-REFERENCES faixas(faixa_id)
-ON DELETE CASCADE
-ON UPDATE CASCADE
+ADD CONSTRAINT pk_faixa_playlist_id
+PRIMARY KEY (playlist_id, faixa_id) 
 
 GO
 --4ª B) faixa deve possuir indice secundario sobre o atributo composicao
@@ -299,11 +289,11 @@ FOR INSERT,UPDATE
 AS
 BEGIN
     DECLARE
-    @TIPO_COMPRA TINYINT,
+    @TIPO_COMPRA SMALLINT,
 	@PRECO_ALBUM DECIMAL(8,2),
 	@MEDIA_PRECO_ALBUM DECIMAL(8,2),
 	@str_invalido char(50),
-	@cod TINYINT
+	@cod SMALLINT
 	
 	SELECT @cod=albun_id FROM INSERTED 
 	SELECT @PRECO_ALBUM = pr_compra FROM INSERTED
@@ -338,7 +328,7 @@ Essa funcao pode retornar também o tempo de uma playlist, copiando exatamente o 
 Na clausula where, modificar o id*/
 /*
 GO
-CREATE FUNCTION tempo_album(@album_id tinyint)
+CREATE FUNCTION tempo_album(@album_id SMALLINT)
 returns time
 as
 BEGIN

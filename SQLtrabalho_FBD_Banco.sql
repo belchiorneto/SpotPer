@@ -194,7 +194,7 @@ campos:
 CREATE TABLE playlists
 	(
 		playlist_id SMALLINT NOT NULL,
-		nome VARCHAR(20),
+		nome VARCHAR(65),
 		dt_criacao DATETIME,
 		numero_tocadas SMALLINT,
 		tempo_total TIME,
@@ -213,16 +213,8 @@ CREATE TABLE playlists_faixas
 		faixa_id SMALLINT NOT NULL,
 		qt_plays INT,
 		dt_ultimo_play DATETIME,
-		CONSTRAINT fk_playlist_faixa_id
-		FOREIGN KEY (playlist_id) 
-		REFERENCES playlists(playlist_id)
-		ON DELETE CASCADE,
-
-		CONSTRAINT fk_faixa_playlist_id
-		FOREIGN KEY (faixa_id) 
-		REFERENCES faixas(faixa_id)
-		ON DELETE CASCADE
-		ON UPDATE CASCADE
+		CONSTRAINT pk_playlist_faixa_id
+		PRIMARY KEY (playlist_id, faixa_id) 
 	) ON BDSpotPer_fg02
 /*
 Tabela "periodosmusicais", armazena as informações de periodos musicais
@@ -377,7 +369,7 @@ CREATE TABLE faixas_interpretes
 		faixa_id SMALLINT NOT NULL,
 		
 		CONSTRAINT pk_faixa_interpret_id
-		PRIMARY KEY (interprete_id, faixa_id) 
+		PRIMARY KEY (faixa_id, interprete_id) 
 		
 	) ON BDSpotPer_fg01
 	/*
