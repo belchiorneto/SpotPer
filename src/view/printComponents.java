@@ -69,7 +69,7 @@ public class printComponents {
     
     public void printAlbuns(JPanel painelPai, HashMap<String, Albun> albuns){
         //painelPai.removeAll();
-        painelPai.setBorder(blackline);
+        //painelPai.setBorder(blackline);
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;
         constraints.fill = GridBagConstraints.VERTICAL;
@@ -145,7 +145,7 @@ public class printComponents {
     // Aplica as alterações no painel principal adicionando a lista de playlists
     
     public void printPlayLists(JPanel painelPai, HashMap<String, PlayList> playlists){
-        painelPai.setBorder(blackline);
+        //painelPai.setBorder(blackline);
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;
         constraints.fill = GridBagConstraints.VERTICAL;
@@ -182,11 +182,11 @@ public class printComponents {
     // função para incluir na tela a lista de faixas referente a cada cd
     public void printFaixas(JPanel painelPai, HashMap<String, Faixa> faixas){
         
-        painelPai.setBorder(blackline);
+        //painelPai.setBorder(blackline);
         
         for(Faixa faixa: faixas.values()){
             GridBagConstraints constraints = new GridBagConstraints();
-            constraints.anchor = GridBagConstraints.WEST;
+            constraints.anchor = GridBagConstraints.NORTH;
             JPanel pnlFaixas = new JPanel(new GridBagLayout());
             JLabel faixaDescr = new JLabel();
             faixaDescr.setText(faixa.getDescr());
@@ -237,6 +237,7 @@ public class printComponents {
             constraints.gridx = 2;
             pnlFaixas.add(playButton, constraints);
             constraints.gridx = 0;
+            constraints.anchor = GridBagConstraints.PAGE_START;
             painelPai.add(pnlFaixas, constraints);
             painelPai.revalidate();
             painelPai.repaint();

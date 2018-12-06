@@ -12,6 +12,7 @@
  */
 package view;
 import components.Albun;
+import components.Compositor;
 import components.Faixa;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
@@ -75,13 +76,16 @@ public class printWebComponents {
         HashMap<String, Faixa> faixas = searchfiles.listaComposicoes("h2", "li", compositor);
         Albun albun = new Albun();
         albun.setNewId();
-        albun.setDescr(compositor);
+        albun.setDescr(compositor.split("\\(")[0]);
         String dataAtual = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         albun.setDt_compra(dataAtual);
         albun.setDt_gravacao(dataAtual);
         albun.setTipo_compra_id(1);
         albun.setGravadora_id(1);
         albun.setFaixas(faixas);
+        Compositor comp = new Compositor();
+        comp.setNewId();
+        comp.setNome(compositor);
         
         int count = 1;
         for(Faixa faixa: albun.getFaixas().values()){
@@ -96,8 +100,9 @@ public class printWebComponents {
             JButton playButton = new JButton();
             playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/play.png")));
             // test to see if a file exists
-            
-            String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
+            String nomedaFaixa = faixa.getDescr().replaceAll("\\u0020", "%20");
+            nomedaFaixa = nomedaFaixa.replaceAll("\"", "");
+            String path = "file:///C:/FBD/" + nomedaFaixa + ".mp3";
             playButton.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent event){
                     if(playfile.getClip() != null){
@@ -127,10 +132,13 @@ public class printWebComponents {
                     */
                     String urlfile = "https://www.mfiles.co.uk/"+ faixa.getUrlDownload();
                     try {
-                        new tools.FileManager().download(urlfile, "C:/FBD/" + faixa.getDescr() + ".mp3");
+                        String nomedaFaixa = faixa.getDescr();
+                        nomedaFaixa = nomedaFaixa.replaceAll("\"", "");
+                        new tools.FileManager().download(urlfile, "C:/FBD/" + nomedaFaixa + ".mp3");
                         downloadButton.setVisible(false);
                         playButton.setVisible(true);
-                        String path = "file:///C:/FBD/" + faixa.getDescr().replaceAll("\\u0020", "%20") + ".mp3";
+                        nomedaFaixa = nomedaFaixa.replaceAll("\\u0020", "%20");
+                        String path = "file:///C:/FBD/" + nomedaFaixa + ".mp3";
                         playfile.setClip(path);
                         faixa.setTipoGravacaoID(1);
                         //faixa.setDuracao(String.valueOf(playfile.getDuration()));
@@ -138,6 +146,9 @@ public class printWebComponents {
                         // inclui faixa no db
                         if(!albun.exist()){
                             albun.addToDb();                        
+                        }
+                        if(!comp.exist()){
+                            comp.addToDb();                        
                         }
                         // inclui faixa no bd
                         faixa.addToDB(albun.getAlbunid());

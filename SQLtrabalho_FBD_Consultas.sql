@@ -336,6 +336,7 @@ SELECT CONVERT(varchar, DATEADD(ms, @T * 1000, 0), 114)
 /*Conferir tempo total de um album. 
 Essa funcao pode retornar também o tempo de uma playlist, copiando exatamente o codigo anterior na funcao abaixo.
 Na clausula where, modificar o id*/
+/*
 GO
 CREATE FUNCTION tempo_album(@album_id tinyint)
 returns time
@@ -352,3 +353,4 @@ BEGIN
 	set @tempo_total = SELECT CONVERT(varchar, DATEADD(ms, @T * 1000, 0), 114) 
 return @tempo_total
 END
+*/

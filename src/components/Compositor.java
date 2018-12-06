@@ -31,6 +31,24 @@ public class Compositor {
     private int periodoMusicalId;
     
     Composicao[] composicoes;
+    public void setNewId(){
+        int id = 0; 
+        String SQL = "";
+        SQL += "SELECT " 
+                + "MAX(compositor_id) as compositor_id "
+                + "FROM "
+                + "compositores";
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            if(rs.next()) {
+                id = Integer.parseInt(rs.getString("compositor_id")) + 1;
+                System.out.println(id);
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        compositor_id = id;
+    }
     public void setId(int newId){
         compositor_id = newId;
     }
@@ -67,7 +85,33 @@ public class Compositor {
     public String getDtNascimento(){
         return dt_nascimento;
     }
-    
+    public boolean exist(){
+        String SQL = "";
+        SQL += "SELECT " 
+                + "compositor_id "
+                + "FROM "
+                + "compositores "
+                + "WHERE "
+                + "compositor_id = " + getId();
+        ResultSet rs = DbUtils.Lista(SQL);
+        try{
+            if(rs.next()) {
+                return true;
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public void addToDb(){
+        String campos = "compositor_id, dt_morte, dt_nascimento, nome, cidade_id, periodomusical_id";
+        String dados = getId() + ", null, null ," 
+                +"'"+ getNome() + "',"
+                + "'1', "
+                + "'1'";
+        String tabela = "compositores";
+        DbUtils.Insert(campos, dados, tabela);
+    }
     public HashMap<String, Compositor> listaCompositores(){
         HashMap<String, Compositor> compositores = new HashMap<>();
         

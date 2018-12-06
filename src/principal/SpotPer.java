@@ -55,13 +55,15 @@ public class SpotPer extends JFrame {
     private final JPanel PainelBusca;
     private final JPanel PainelCentral;
     private final JPanel PainelMaisTocadas;
+    private final printComponents componentes;
+    private final printWebComponents webComponentes;
   
     
     public SpotPer() {
         super("SpotPer");
         DbConn connection = new DbConn();
-        printComponents componentes = new printComponents();
-        printWebComponents webComponentes = new printWebComponents();
+        componentes = new printComponents();
+        webComponentes = new printWebComponents();
         PainelBotoes = new JPanel(new GridBagLayout());
         PainelBotoes.setPreferredSize(new Dimension(1000, 140));
         PainelBusca = new JPanel(new GridBagLayout());
@@ -155,6 +157,8 @@ public class SpotPer extends JFrame {
                 componentes.printAlbuns(PainelCentral, new Albun().listaAlbuns());
                 PainelCentral.revalidate();
                 PainelCentral.repaint();
+                printMaistocadas();
+                
             }
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ButtonAlbuns.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_albuns_h.png")));
@@ -173,6 +177,7 @@ public class SpotPer extends JFrame {
                 componentes.printCompositores(PainelCentral, new Compositor().listaCompositores());
                 PainelCentral.revalidate();
                 PainelCentral.repaint();
+                printMaistocadas();
             }
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ButtonCompositores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_compositores_h.png")));
@@ -191,6 +196,7 @@ public class SpotPer extends JFrame {
                 
                 PainelCentral.revalidate();
                 PainelCentral.repaint();
+                printMaistocadas();
             }
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ButtonPlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_playlist_h.png")));
@@ -210,6 +216,7 @@ public class SpotPer extends JFrame {
                 webComponentes.printCompositores(PainelCentral, searchfiles);
                 PainelCentral.revalidate();
                 PainelCentral.repaint();
+                printMaistocadas();
             }
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ButtonWeb.setIcon(new javax.swing.ImageIcon(getClass().getResource("/principal/icon_web_h.png")));
@@ -222,6 +229,14 @@ public class SpotPer extends JFrame {
         pack();
     }
     
+    public void printMaistocadas(){
+        printComponents comp = new printComponents();
+        PainelMaisTocadas.removeAll();
+        comp.printFaixas(PainelMaisTocadas, new Faixa().listaMaisTocadas());
+        PainelMaisTocadas.revalidate();
+        PainelMaisTocadas.repaint();
+    }
+   
     /**
      * @param args the command line arguments
      */
