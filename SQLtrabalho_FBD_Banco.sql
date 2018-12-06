@@ -63,13 +63,13 @@ campos:
 */
 CREATE TABLE albuns
 	(
-		albun_id TINYINT NOT NULL,
+		albun_id SMALLINT NOT NULL,
 		pr_compra DECIMAL(8,2),
 		dt_compra DATETIME,
 		dt_gravacao CHAR(10),
 		descr varchar(255),
-		tipo_compra_id TINYINT NOT NULL,
-		gravadora_id TINYINT NOT NULL,
+		tipo_compra_id SMALLINT NOT NULL,
+		gravadora_id SMALLINT NOT NULL,
 		CONSTRAINT pk_albun PRIMARY KEY (albun_id) 
 		-- adicionaremos as chaves estrangeiras depois de criada a tabela "tipo_compra" e "gravadora"
 	) ON BDSpotPer_fg01
@@ -82,7 +82,7 @@ campos:
 */
 CREATE TABLE tipos_compra 
 	(
-		tipo_id TINYINT NOT NULL,
+		tipo_id SMALLINT NOT NULL,
 		descr VARCHAR(20),
 		CONSTRAINT pk_tipo PRIMARY KEY (tipo_id)
 	) ON BDSpotPer_fg01
@@ -98,7 +98,7 @@ campos:
 
 CREATE TABLE gravadoras 
 	(
-		gravadora_id TINYINT NOT NULL,
+		gravadora_id SMALLINT NOT NULL,
 		nome VARCHAR(40),
 		endereco VARCHAR(255),
 		website VARCHAR(255),
@@ -127,22 +127,16 @@ campos:
 
 CREATE TABLE faixas
 	(
-		faixa_id TINYINT NOT NULL,
+		faixa_id SMALLINT NOT NULL,
 		duracao TIME,
 		descr VARCHAR(255),
-		tipo_gravacao_id TINYINT NOT NULL,
-		albun_id TINYINT NOT NULL,
-		tipo_composicao_id TINYINT NOT NULL,
-		plays TINYINT DEFAULT 0,
+		tipo_gravacao_id SMALLINT NOT NULL,
+		albun_id SMALLINT NOT NULL,
+		tipo_composicao_id SMALLINT NOT NULL,
+		plays SMALLINT DEFAULT 0,
 		
 		CONSTRAINT pk_faixa_id
-		PRIMARY KEY (faixa_id),
-		
-		CONSTRAINT fk_albun_id
-		FOREIGN KEY( albun_id ) 
-		REFERENCES albuns ( albun_id )
-		ON DELETE CASCADE
-		ON UPDATE CASCADE
+		PRIMARY KEY (faixa_id,albun_id)
 		-- adcicionaremos a fk tipo_gravacao_id depois de criada a tabela "tipos_gravacoes"
 	) ON BDSpotPer_fg02
 
@@ -156,7 +150,7 @@ campos:
 
 CREATE TABLE tipos_gravacao
 	(
-		tipo_gravacao_id TINYINT NOT NULL,
+		tipo_gravacao_id SMALLINT NOT NULL,
 		descr VARCHAR(60),
 		CONSTRAINT pk_tipo_gravacao_id
 		PRIMARY KEY (tipo_gravacao_id)
@@ -177,10 +171,10 @@ campos:
 
 CREATE TABLE telefones
 	(
-		telefone_id TINYINT NOT NULL,
+		telefone_id SMALLINT NOT NULL,
 		descr VARCHAR(20),
 		numero VARCHAR(20),
-		gravadora_id TINYINT NOT NULL,
+		gravadora_id SMALLINT NOT NULL,
 		CONSTRAINT pk_telefone_id
 		PRIMARY KEY (telefone_id),
 
@@ -199,10 +193,10 @@ campos:
 */
 CREATE TABLE playlists
 	(
-		playlist_id TINYINT NOT NULL,
+		playlist_id SMALLINT NOT NULL,
 		nome VARCHAR(20),
 		dt_criacao DATETIME,
-		numero_tocadas TINYINT,
+		numero_tocadas SMALLINT,
 		tempo_total TIME,
 		CONSTRAINT pk_playlist_id
 		PRIMARY KEY (playlist_id),
@@ -215,8 +209,8 @@ campos:
 */
 CREATE TABLE playlists_faixas
 	(
-		playlist_id TINYINT NOT NULL,
-		faixa_id TINYINT NOT NULL,
+		playlist_id SMALLINT NOT NULL,
+		faixa_id SMALLINT NOT NULL,
 		qt_plays INT,
 		dt_ultimo_play DATETIME,
 		CONSTRAINT fk_playlist_faixa_id
@@ -240,7 +234,7 @@ campos:
 */
 CREATE TABLE periodosmusicais
 	(
-		periodomusical_id TINYINT NOT NULL,
+		periodomusical_id SMALLINT NOT NULL,
 		descr VARCHAR(65),
 		atividade_inicio char(4),
 		atividade_fim char(4),
@@ -255,7 +249,7 @@ campos:
 */
 CREATE TABLE paises
 	(
-		pais_id TINYINT NOT NULL,
+		pais_id SMALLINT NOT NULL,
 		nome VARCHAR(65),
 		CONSTRAINT pk_pais_id
 		PRIMARY KEY (pais_id),
@@ -270,9 +264,9 @@ campos:
 */
 CREATE TABLE cidades
 	(
-		cidade_id TINYINT NOT NULL,
+		cidade_id SMALLINT NOT NULL,
 		nome VARCHAR(65),
-		pais_id TINYINT NOT NULL,
+		pais_id SMALLINT NOT NULL,
 		CONSTRAINT cidade_id
 		PRIMARY KEY (cidade_id),
 		CONSTRAINT fk_pais_id
@@ -292,12 +286,12 @@ campos:
 */
 CREATE TABLE compositores
 	(
-		compositor_id TINYINT NOT NULL,
+		compositor_id SMALLINT NOT NULL,
 		dt_morte CHAR(10),
 		dt_nascimento CHAR(10),
 		nome VARCHAR(65),
-		cidade_id TINYINT NOT NULL,
-		periodomusical_id TINYINT NOT NULL,
+		cidade_id SMALLINT NOT NULL,
+		periodomusical_id SMALLINT NOT NULL,
 		CONSTRAINT pk_compositor_id
 		PRIMARY KEY (compositor_id),
 		CONSTRAINT fk_cidade_id
@@ -316,7 +310,7 @@ campos:
 
 CREATE TABLE tipos_composicoes
 	(
-		tipo_composicao_id TINYINT NOT NULL,
+		tipo_composicao_id SMALLINT NOT NULL,
 		descr VARCHAR(65)
 		CONSTRAINT pk_tipo_composicao_id
 		PRIMARY KEY (tipo_composicao_id)
@@ -330,8 +324,8 @@ campos:
 */
 CREATE TABLE composicoes
 	(
-		composicao_id TINYINT NOT NULL,
-		tipo_composicao_id TINYINT NOT NULL,
+		composicao_id SMALLINT NOT NULL,
+		tipo_composicao_id SMALLINT NOT NULL,
 		descr VARCHAR(65),
 		CONSTRAINT pk_composicao_id
 		PRIMARY KEY (composicao_id),
@@ -348,7 +342,7 @@ campos:
 */
 CREATE TABLE tipos_interpretes
 	(
-		tipo_interprete_id TINYINT NOT NULL,
+		tipo_interprete_id SMALLINT NOT NULL,
 		descr VARCHAR(65),
 		CONSTRAINT pk_tipo_interprete_id
 		PRIMARY KEY (tipo_interprete_id)
@@ -362,9 +356,9 @@ campos:
 */
 CREATE TABLE interpretes
 	(
-		interprete_id TINYINT NOT NULL,
+		interprete_id SMALLINT NOT NULL,
 		nome VARCHAR(65),
-		tipo_interprete_id TINYINT NOT NULL,
+		tipo_interprete_id SMALLINT NOT NULL,
 		CONSTRAINT pk_interprete_id
 		PRIMARY KEY (interprete_id),
 		CONSTRAINT fk_tipo_interprete_id
@@ -379,18 +373,12 @@ campos:
 */
 CREATE TABLE faixas_interpretes
 	(
-		interprete_id TINYINT NOT NULL,
-		faixa_id TINYINT NOT NULL,
+		interprete_id SMALLINT NOT NULL,
+		faixa_id SMALLINT NOT NULL,
 		
-		CONSTRAINT fk_interprete_id
-		FOREIGN KEY (interprete_id) 
-		REFERENCES interpretes(interprete_id),
+		CONSTRAINT pk_faixa_interpret_id
+		PRIMARY KEY (interprete_id, faixa_id) 
 		
-		CONSTRAINT fk_faixas_interpretes_id
-		FOREIGN KEY (faixa_id) 
-		REFERENCES faixas(faixa_id)		
-		ON DELETE CASCADE
-		ON UPDATE CASCADE
 	) ON BDSpotPer_fg01
 	/*
 Tabela "faixas_compositores", necessária para fazer a ligação entre as tabelas faixas e copositores
@@ -400,18 +388,12 @@ campos:
 */
 CREATE TABLE faixas_compositores
 	(
-		compositor_id TINYINT NOT NULL,
-		faixa_id TINYINT NOT NULL,
+		compositor_id SMALLINT NOT NULL,
+		faixa_id SMALLINT NOT NULL,
 		
-		CONSTRAINT fk_compositor_id
-		FOREIGN KEY (compositor_id) 
-		REFERENCES compositores(compositor_id),
-		
-		CONSTRAINT fk_faixas_compositores_id
-		FOREIGN KEY (faixa_id) 
-		REFERENCES faixas(faixa_id)		
-		ON DELETE CASCADE
-		ON UPDATE CASCADE
+		CONSTRAINT pk_faixa_compositor_id
+		PRIMARY KEY (faixa_id, compositor_id)
+
 	) ON BDSpotPer_fg01
 /*
 Tabela "faixas_composicoes", necessária para fazer a ligação entre as tabelas faixas e composicoes
@@ -421,17 +403,11 @@ campos:
 */
 CREATE TABLE faixas_composicoes
 	(
-		faixa_id TINYINT NOT NULL,
-		composicao_id TINYINT NOT NULL,
-		CONSTRAINT fk_composicao_id
-		FOREIGN KEY (composicao_id) 
-		REFERENCES composicoes(composicao_id),
+		faixa_id SMALLINT NOT NULL,
+		composicao_id SMALLINT NOT NULL,
+		CONSTRAINT pk_faixa_composicao_id
+		PRIMARY KEY (faixa_id, composicao_id) 
 		
-		CONSTRAINT fk_faixa_id
-		FOREIGN KEY (faixa_id) 
-		REFERENCES faixas(faixa_id)		
-		ON DELETE CASCADE
-		ON UPDATE CASCADE
 	) ON BDSpotPer_fg01
 /*
 Tabela "interpretes_composicoes", necessária para fazer a ligação entre as tabelas interpretes e composições
@@ -441,16 +417,11 @@ campos:
 */
 CREATE TABLE interpretes_composicoes
 	(
-		interprete_id TINYINT NOT NULL,
-		composicao_id TINYINT NOT NULL,
-		CONSTRAINT fk_interpretes_composicoes_id
-		FOREIGN KEY (interprete_id) 
-		REFERENCES interpretes(interprete_id),
-		
-		CONSTRAINT fk_composicoes_interpretes_id
-		FOREIGN KEY (composicao_id) 
-		REFERENCES composicoes(composicao_id)
-		ON DELETE CASCADE
+		interprete_id SMALLINT NOT NULL,
+		composicao_id SMALLINT NOT NULL,
+		CONSTRAINT pk_interpretes_composicao_id
+		PRIMARY KEY (interprete_id, composicao_id) 
+
 	) ON BDSpotPer_fg01
 
 GO

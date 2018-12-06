@@ -28,6 +28,7 @@ public class PlayFile{
     private Pane nPane;
     
     public void play(){
+        player.setVolume(1);
         player.play();
     }
     public void stop(){
